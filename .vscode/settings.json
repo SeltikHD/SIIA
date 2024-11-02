@@ -4,6 +4,7 @@
         "**/.buildozer": true,
         "**/__pycache__": true,
         "**/node_modules": true,
-        "**/*.lock": true
+        "**/*.lock": true,
+        "**/postcss.config.js": true,
     }
 }

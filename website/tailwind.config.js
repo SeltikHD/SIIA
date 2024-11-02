@@ -8,5 +8,5 @@ module.exports = {
         themes: ["nord", "night"],
         darkTheme: "night",
     },
-    plugins: [require("daisyui"), require("tailwind-scrollbar")],
+    plugins: [require("daisyui")],
 };

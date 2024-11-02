@@ -2,27 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-    height: 100vh;
-}
-
-body {
-    height: 100vh;
-    margin: 0;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
-
-html,
-body {
-    max-height: 100vh;
-}
-
-li + li {
-    margin-top: 10px;
-}
-
-div {
-    border: none;
-    box-shadow: 0 0 80px 0 rgba(0, 0, 0, 0.2);
-}

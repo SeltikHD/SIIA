@@ -9,7 +9,7 @@ BEGIN
     END LOOP;
 END $$;
 
---* Estufa --
+--* Estufa *--
 CREATE TABLE cultura (
     id SERIAL PRIMARY KEY,
     nome TEXT NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE fertilizacao (
     fertilizante_cultura_id INTEGER REFERENCES fertilizante_cultura(id) ON DELETE CASCADE
 );
 
---* Usuário --
+--* Usuário *--
 CREATE TABLE grupo (
     id SERIAL PRIMARY KEY,
     nome TEXT NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE usuario (
     grupo_id INTEGER REFERENCES grupo(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
     email TEXT NOT NULL,
-    senha TEXT NOT NULL,
+    senha TEXT,
     foto BYTEA
 );
 
@@ -109,7 +109,7 @@ CREATE TABLE log (
     mensagem TEXT NOT NULL
 );
 
---* Autenticação --
+--* Autenticação *--
 CREATE TABLE token (
     id SERIAL PRIMARY KEY,
     token TEXT NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE sessao_usuario (
     usuario_id INTEGER REFERENCES usuario(id) ON DELETE CASCADE
 );
 
---* Reconhecimento Facial --
+--* Reconhecimento Facial *--
 CREATE TABLE tentativa_acesso (
     id SERIAL PRIMARY KEY,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -133,7 +133,7 @@ CREATE TABLE tentativa_acesso (
     foto BYTEA -- Salvar a foto do rosto se a tentativa não for bem sucedida
 );
 
---* Notificação --
+--* Notificação *--
 CREATE TABLE notificacao (
     id SERIAL PRIMARY KEY,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

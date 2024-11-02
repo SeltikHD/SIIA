@@ -9,7 +9,7 @@ Este é um projeto de estufa automática (chamado de SIIA), essa parte utiliza o
 2. **Instale as Dependências do Projeto**: No terminal, navegue até a pasta do projeto e execute o seguinte comando para instalar as dependências necessárias:
 
     ```bash
-    pip install Flask Flask-SQLAlchemy psycopg2 scikit-learn matplotlib opencv-python-headless python-dotenv paho-mqtt
+    pip install Flask Flask-SQLAlchemy psycopg2 scikit-learn matplotlib opencv-python-headless python-dotenv paho-mqtt argon2-cffi firebase-admin
     ```
 
 3. **Configure o Banco de Dados**: Certifique-se de ter o PostgreSQL instalado e configurado em sua máquina. Crie um banco de dados e uma tabela para armazenar os dados da estufa. Aqui está um exemplo de tabela:

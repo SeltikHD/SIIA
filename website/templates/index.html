@@ -1,1 +1,58 @@
-{% extends "components/base.html" %}
+{% extends "components/base.html" %} {% block content %}
+<section class="container mx-auto p-6 bg-base-100">
+    <h2 class="text-3xl font-bold mb-6 text-center">Informações da Estufa</h2>
+
+    {% for sessao in sessoes_info %}
+    <div class="card w-full lg:w-1/2 bg-base-200 shadow-md my-4 mx-auto">
+        <div class="card-body">
+            <h3 class="card-title text-lg font-semibold">{{ sessao.sessao_nome }}</h3>
+            <p class="text-sm text-gray-500">Cultura: <span class="font-medium">{{ sessao.cultura_nome }}</span></p>
+
+            <div class="grid grid-cols-2 gap-4 my-3">
+                <div>
+                    <p>Tempo de Cultivo:</p>
+                    <p class="font-medium">{{ sessao.tempo_cultivo }}</p>
+                </div>
+                <div>
+                    <p>Status:</p>
+                    <span class="badge {{ 'badge-success' if sessao.ocupada else 'badge-warning' }}">
+                        {{ 'Ocupada' if sessao.ocupada else 'Vazia' }}
+                    </span>
+                </div>
+                <div>
+                    <p>Irrigação:</p>
+                    <span class="badge {{ 'badge-info' if sessao.esta_irrigando else 'badge-secondary' }}">
+                        {{ 'Irrigando' if sessao.esta_irrigando else 'Parada' }}
+                    </span>
+                </div>
+                <div>
+                    <p>Temperatura:</p>
+                    <p class="font-medium">{{ sessao.temperatura }}°C</p>
+                </div>
+                <div>
+                    <p>Umidade do Ar:</p>
+                    <p class="font-medium">{{ sessao.umidade_ar }}%</p>
+                </div>
+                <div>
+                    <p>Umidade do Solo:</p>
+                    <p class="font-medium">{{ sessao.umidade_solo }}%</p>
+                </div>
+            </div>
+
+            {% if sessao.imagem_base64 %}
+            <div class="my-4">
+                <p class="text-sm text-gray-500">Imagem da Sessão:</p>
+                <img
+                    src="data:image/png;base64,{{ sessao.imagem_base64 }}"
+                    alt="Sessão"
+                    class="rounded-lg shadow-md w-full h-auto"
+                />
+            </div>
+            {% else %}
+            <p class="text-gray-400 text-sm">Imagem não disponível</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endblock content %}

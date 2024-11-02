@@ -11,68 +11,86 @@
         <meta name="author" content="Ewerthon Kawan; Caio Breno" />
         <title>SIIA - {% block title %}Home{% endblock title %}</title>
         <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     </head>
 
     <body>
         {% include "components/header.html" %}
-        
-        <div>
-            {% block content %}
-            <section class="container mx-auto p-6 bg-base-100">
-                <h2 class="text-3xl font-bold mb-6 text-center">Informações da Estufa</h2>
+        <div>{% block content %}{% endblock content %}</div>
+        {% include "components/footer.html" %}
+        <script type="module">
+            // Importa e inicializa o Firebase e a autenticação
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+            import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+            import {
+                getAuth,
+                signInWithPopup,
+                GoogleAuthProvider,
+            } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-                {% for sessao in sessoes_info %}
-                <div class="card w-full lg:w-1/2 bg-base-200 shadow-md my-4 mx-auto">
-                    <div class="card-body">
-                        <h3 class="card-title text-lg font-semibold">{{ sessao.sessao_nome }}</h3>
-                        <p class="text-sm text-gray-500">Cultura: <span class="font-medium">{{ sessao.cultura_nome }}</span></p>
-                        
-                        <div class="grid grid-cols-2 gap-4 my-3">
-                            <div>
-                                <p>Tempo de Cultivo:</p>
-                                <p class="font-medium">{{ sessao.tempo_cultivo }}</p>
-                            </div>
-                            <div>
-                                <p>Status:</p>
-                                <span class="badge {{ 'badge-success' if sessao.ocupada else 'badge-warning' }}">
-                                    {{ 'Ocupada' if sessao.ocupada else 'Vazia' }}
-                                </span>
-                            </div>
-                            <div>
-                                <p>Irrigação:</p>
-                                <span class="badge {{ 'badge-info' if sessao.esta_irrigando else 'badge-secondary' }}">
-                                    {{ 'Irrigando' if sessao.esta_irrigando else 'Parada' }}
-                                </span>
-                            </div>
-                            <div>
-                                <p>Temperatura:</p>
-                                <p class="font-medium">{{ sessao.temperatura }}°C</p>
-                            </div>
-                            <div>
-                                <p>Umidade do Ar:</p>
-                                <p class="font-medium">{{ sessao.umidade_ar }}%</p>
-                            </div>
-                            <div>
-                                <p>Umidade do Solo:</p>
-                                <p class="font-medium">{{ sessao.umidade_solo }}%</p>
-                            </div>
-                        </div>
+            // Configurações Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyCmQsh4PYlBaqQe5cBA8Axa0E7wMynbJvA",
+                authDomain: "siia-9f7ea.firebaseapp.com",
+                projectId: "siia-9f7ea",
+                storageBucket: "siia-9f7ea.firebasestorage.app",
+                messagingSenderId: "258292846311",
+                appId: "1:258292846311:web:2c9b37ac8ecb03939d9c42",
+                measurementId: "G-JN4RQ8CXMH",
+            };
 
-                        {% if sessao.imagem_base64 %}
-                        <div class="my-4">
-                            <p class="text-sm text-gray-500">Imagem da Sessão:</p>
-                            <img src="data:image/png;base64,{{ sessao.imagem_base64 }}" alt="Sessão" class="rounded-lg shadow-md w-full h-auto" />
-                        </div>
-                        {% else %}
-                        <p class="text-gray-400 text-sm">Imagem não disponível</p>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </section>
-            {% endblock content %}
-        </div>
-        
-       {% include "components/footer.html" %}
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+
+            // Função para login pelo Google
+            window.googleLogin = async function () {
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+
+                    // Envia o token ID para o backend para validação e login
+                    const idToken = await user.getIdToken();
+                    fetch("/google_login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ idToken }),
+                    }).then((response) => {
+                        if (response.redirected) {
+                            logEvent(analytics, "login", { method: "Google" }); // Loga o evento de login
+                            window.location.href = response.url; // Redireciona ao sucesso
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao fazer login com Google: ", error);
+                }
+            };
+
+            // Loga um evento de visualização de página para Analytics
+            document.addEventListener("DOMContentLoaded", () => {
+                logEvent(analytics, "page_view", {
+                    page_location: window.location.href,
+                    page_path: window.location.pathname,
+                });
+            });
+
+            //* Configuração do tema
+            const themeToggle = document.getElementById("theme-toggle");
+
+            // Carregar tema salvo ao carregar a página
+            document.addEventListener("DOMContentLoaded", () => {
+                const savedTheme = localStorage.getItem("theme") || "nord";
+                themeToggle.checked = savedTheme === "night";
+                document.documentElement.setAttribute("data-theme", savedTheme);
+            });
+
+            // Salvar e aplicar tema ao mudar o checkbox
+            themeToggle.addEventListener("change", () => {
+                const newTheme = themeToggle.checked ? "night" : "nord";
+                document.documentElement.setAttribute("data-theme", newTheme);
+                localStorage.setItem("theme", newTheme);
+            });
+        </script>
     </body>
 </html>

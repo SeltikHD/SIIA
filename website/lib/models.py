@@ -114,7 +114,7 @@ class Usuario(db.Model):
     grupo_id = db.Column(db.Integer, db.ForeignKey('grupo.id'), nullable=False)
     nome = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False, unique=True)
-    senha = db.Column(db.String, nullable=False)
+    senha = db.Column(db.String)
     foto = db.Column(db.LargeBinary)
     logs = db.relationship('Log', backref='usuario', lazy=True)
     tentativas_acesso = db.relationship('TentativaAcesso', backref='usuario', lazy=True)
