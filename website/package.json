@@ -1,13 +1,13 @@
 {
     "scripts": {
-        "start": "yarn build; export FLASK_ENV=development; export FLASK_APP=app.py; export FLASK_DEBUG=1; flask run &",
+        "start": "export FLASK_ENV=development; export FLASK_APP=app.py; export FLASK_DEBUG=1; flask run",
         "build": "npx tailwindcss -i ./static/src/input.css -o ./static/dist/css/output.css --watch"
     },
     "license": "MIT",
     "devDependencies": {
         "autoprefixer": "^10.4.20",
         "daisyui": "^4.12.14",
-        "postcss": "^8.4.47",
-        "tailwindcss": "^3.4.14"
+        "postcss": "^8.4.49",
+        "tailwindcss": "^3.4.15"
     }
 }
