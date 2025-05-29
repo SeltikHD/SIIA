@@ -1,0 +1,16 @@
+{% extends "components/base.html" %} {% block content %}
+<div class="container grid grid-cols-1 gap-4 p-4">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title">Perfil</h2>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-primary">Nome</span>
+                </label>
+                <input type="text" value="{{ current_user.nome }}" disabled />
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

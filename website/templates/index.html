@@ -1,12 +1,21 @@
 {% extends "components/base.html" %} {% block content %}
 <section class="container mx-auto p-6 bg-base-100">
-    <h2 class="text-3xl font-bold mb-6 text-center">Informações da Estufa</h2>
+    {% include 'components/flash/success.html' %}
+
+    <h2 class="text-3xl font-bold mb-6 text-center mt-6">
+        Informações da Estufa
+    </h2>
 
     {% for sessao in sessoes_info %}
     <div class="card w-full lg:w-1/2 bg-base-200 shadow-md my-4 mx-auto">
         <div class="card-body">
-            <h3 class="card-title text-lg font-semibold">{{ sessao.sessao_nome }}</h3>
-            <p class="text-sm text-gray-500">Cultura: <span class="font-medium">{{ sessao.cultura_nome }}</span></p>
+            <h3 class="card-title text-lg font-semibold">
+                {{ sessao.sessao_nome }}
+            </h3>
+            <p class="text-sm text-gray-500">
+                Cultura:
+                <span class="font-medium">{{ sessao.cultura_nome }}</span>
+            </p>
 
             <div class="grid grid-cols-2 gap-4 my-3">
                 <div>
@@ -15,13 +24,17 @@
                 </div>
                 <div>
                     <p>Status:</p>
-                    <span class="badge {{ 'badge-success' if sessao.ocupada else 'badge-warning' }}">
+                    <span
+                        class="badge {{ 'badge-success' if sessao.ocupada else 'badge-warning' }}"
+                    >
                         {{ 'Ocupada' if sessao.ocupada else 'Vazia' }}
                     </span>
                 </div>
                 <div>
                     <p>Irrigação:</p>
-                    <span class="badge {{ 'badge-info' if sessao.esta_irrigando else 'badge-secondary' }}">
+                    <span
+                        class="badge {{ 'badge-info' if sessao.esta_irrigando else 'badge-secondary' }}"
+                    >
                         {{ 'Irrigando' if sessao.esta_irrigando else 'Parada' }}
                     </span>
                 </div>

@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+flask-login
+psycopg2-binary
+scikit-learn
+matplotlib
+opencv-python-headless
+python-dotenv
+paho-mqtt
+argon2-cffi
+firebase-admin

@@ -1,27 +1,29 @@
-{% extends "components/base.html" %} {% block title %}Registrar{% endblock title %} {% block content %}
+{% extends "components/base.html" %} {% block title %}Registrar{% endblock title
+%} {% block content %}
 <div class="flex items-center justify-center min-h-screen">
     <div class="card w-96 dark:bg-base-200 shadow-xl">
         <div class="card-body">
-            <div class="card-title flex justify-center mb-6"><h2 class="text-center">Registrar</h2></div>
-
-            {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
-            <div class="alert alert-error">
-                <ul>
-                    {% for category, message in messages %}
-                    <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
+            <div class="card-title flex justify-center mb-6">
+                <h2 class="text-center">Registrar</h2>
             </div>
-            {% endif %} {% endwith %}
 
-            <form action="{{ url_for('registrar') }}" method="post" class="space-y-4">
+            {% include 'components/flash/error.html' %}
+
+            <form
+                action="{{ url_for('registrar') }}"
+                method="post"
+                class="space-y-4"
+            >
                 <label class="input input-bordered flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
-                        class="h-5 w-5 opacity-70">
-                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
+                        class="h-5 w-5 opacity-70"
+                    >
+                        <path
+                            d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z"
+                        />
                     </svg>
                     <input
                         type="name"
@@ -29,10 +31,11 @@
                         id="nome-completo"
                         class="input grow border-none focus:outline-none"
                         placeholder="Nome Completo"
-                        required />
+                        required
+                    />
                 </label>
 
-                <hr class="bg-base-100">
+                <hr class="bg-base-100" />
 
                 <label class="input input-bordered flex items-center gap-2">
                     <svg
@@ -63,11 +66,13 @@
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
-                        class="h-5 w-5 opacity-70">
+                        class="h-5 w-5 opacity-70"
+                    >
                         <path
-                        fill-rule="evenodd"
-                        d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
-                        clip-rule="evenodd" />
+                            fill-rule="evenodd"
+                            d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
+                            clip-rule="evenodd"
+                        />
                     </svg>
                     <input
                         type="password"
@@ -84,11 +89,13 @@
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 16 16"
                         fill="currentColor"
-                        class="h-5 w-5 opacity-70">
+                        class="h-5 w-5 opacity-70"
+                    >
                         <path
-                        fill-rule="evenodd"
-                        d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
-                        clip-rule="evenodd" />
+                            fill-rule="evenodd"
+                            d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
+                            clip-rule="evenodd"
+                        />
                     </svg>
                     <input
                         type="password"
@@ -101,12 +108,26 @@
                 </label>
 
                 <div class="form-control mt-6">
-                    <button type="submit" class="btn btn-primary w-full">Registrar</button>
+                    <button type="submit" class="btn btn-primary w-full">
+                        Registrar
+                    </button>
                 </div>
             </form>
 
+            <button
+                onclick="googleLogin()"
+                class="btn btn-outline btn-primary w-full mt-4"
+            >
+                <i class="material-icons mr-2">login</i>
+                Login com Google
+            </button>
+
             <p class="text-center mt-4">
-                Já tem uma conta? <a href="{{ url_for('login') }}" class="text-primary">Faça login</a>.
+                Já tem uma conta?
+                <a href="{{ url_for('login') }}" class="text-primary">
+                    Faça login
+                </a>
+                .
             </p>
         </div>
     </div>

@@ -1,10 +1,10 @@
 {
-    "files.exclude": {
-        "**/*venv": true,
-        "**/.buildozer": true,
-        "**/__pycache__": true,
-        "**/node_modules": true,
-        "**/*.lock": true,
-        "**/postcss.config.js": true,
-    }
+	"files.exclude": {
+		"**/*venv": true,
+		"**/.buildozer": true,
+		"**/__pycache__": true,
+		"**/node_modules": true,
+		"**/*.lock": true,
+		"**/postcss.config.js": true
+	}
 }
