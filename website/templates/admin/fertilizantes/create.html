@@ -1,0 +1,63 @@
+{% extends "components/base.html" %}
+{% block title %}Criar Fertilizante - Administração{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Criar Fertilizante</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_fertilizantes_list') }}">Fertilizantes</a></li>
+                    <li>Criar</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-200 shadow-xl max-w-2xl mx-auto">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin_fertilizante_create') }}" class="space-y-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Nome do Fertilizante *</span>
+                    </label>
+                    <input type="text" name="nome" placeholder="Ex: NPK 10-10-10" 
+                           class="input input-bordered w-full" 
+                           value="{{ request.form.nome or '' }}" required>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Unidade de Medida *</span>
+                    </label>
+                    <select name="unidade_medida_id" class="select select-bordered w-full" required>
+                        <option value="">Selecione a unidade</option>
+                        {% for unidade in unidades %}
+                        <option value="{{ unidade.id }}" 
+                                {{ 'selected' if request.form.unidade_medida_id|string == unidade.id|string else '' }}>
+                            {{ unidade.nome }} ({{ unidade.simbolo }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <label class="label">
+                        <span class="label-text-alt">
+                            Não encontra a unidade? 
+                            <a href="{{ url_for('admin_unidade_create') }}" class="link link-primary">Criar nova unidade</a>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-6">
+                    <a href="{{ url_for('admin_fertilizantes_list') }}" class="btn btn-ghost">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Criar Fertilizante
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

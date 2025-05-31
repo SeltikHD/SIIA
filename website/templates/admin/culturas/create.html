@@ -1,0 +1,114 @@
+{% extends "components/base.html" %} {% block title %}Nova Cultura -
+Administração{% endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Nova Cultura</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_culturas_list') }}">
+                            Culturas
+                        </a>
+                    </li>
+                    <li>Nova</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">
+                                Nome da Cultura
+                            </span>
+                        </label>
+                        <input
+                            type="text"
+                            name="nome"
+                            placeholder="Ex: Tomate, Alface, Manjericão..."
+                            class="input input-bordered w-full"
+                            required
+                            maxlength="100"
+                        />
+                        <label class="label">
+                            <span class="label-text-alt">
+                                O nome deve ser único no sistema
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                            Criar Cultura
+                        </button>
+                    </div>
+
+                    <div class="form-control mt-4">
+                        <a
+                            href="{{ url_for('admin_culturas_list') }}"
+                            class="btn btn-ghost"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                />
+                            </svg>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dica -->
+        <div class="alert alert-info mt-6">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+            </svg>
+            <span>
+                Após criar a cultura, você poderá definir suas condições ideais
+                e criar sessões de cultivo.
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

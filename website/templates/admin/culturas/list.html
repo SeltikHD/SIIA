@@ -1,0 +1,96 @@
+{% extends "components/base.html" %} {% block title %}Culturas - Administração{%
+endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Culturas</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>Culturas</li>
+                </ul>
+            </div>
+        </div>
+        {% if current_user.grupo.nivel_acesso >= 3 %}
+        <a href="{{ url_for('admin_cultura_create') }}" class="btn btn-primary">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+            </svg>
+            Nova Cultura
+        </a>
+        {% endif %}
+    </div>
+
+    {% if culturas %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for cultura in culturas %}
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">{{ cultura.nome }}</h2>
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Condições</div>
+                        <div class="stat-value text-sm">
+                            {{ cultura.condicoes_ideais|length }}
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Sessões</div>
+                        <div class="stat-value text-sm">
+                            {{ cultura.sessoes|length }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_cultura_detail', id=cultura.id) }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Ver Detalhes
+                    </a>
+                    {% if current_user.grupo.nivel_acesso >= 3 %}
+                    <a
+                        href="{{ url_for('admin_cultura_edit', id=cultura.id) }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Editar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="hero min-h-[300px] bg-base-200 rounded-box">
+        <div class="hero-content text-center">
+            <div class="max-w-md">
+                <h1 class="text-3xl font-bold">Nenhuma cultura encontrada</h1>
+                <p class="py-6">Não há culturas cadastradas no sistema.</p>
+                {% if current_user.grupo.nivel_acesso >= 3 %}
+                <a
+                    href="{{ url_for('admin_cultura_create') }}"
+                    class="btn btn-primary"
+                >
+                    Criar Primeira Cultura
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

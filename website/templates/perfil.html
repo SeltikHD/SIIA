@@ -44,7 +44,9 @@ current_user.nome }}{% endblock title %} {% block content %}
                             {{ current_user.nome }}
                         </h2>
                         <div class="badge badge-primary badge-lg mb-4">
-                            Usuário
+                            {% if current_user.grupo %} {{
+                            current_user.grupo.nome }} {% else %} Usuário {%
+                            endif %}
                         </div>
 
                         <!-- Profile Stats -->
@@ -56,6 +58,19 @@ current_user.nome }}{% endblock title %} {% block content %}
                                 <div class="stat-value text-lg">
                                     #{{ current_user.id }}
                                 </div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-title text-xs">Grupo</div>
+                                <div class="stat-value text-sm text-primary">
+                                    {% if current_user.grupo %} {{
+                                    current_user.grupo.nome }} {% else %} Não
+                                    definido {% endif %}
+                                </div>
+                                {% if current_user.grupo %}
+                                <div class="stat-desc">
+                                    Nível {{ current_user.grupo.nivel_acesso }}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="stat">
                                 <div class="stat-title text-xs">Status</div>

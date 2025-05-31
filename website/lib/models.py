@@ -83,6 +83,7 @@ class UnidadeMedida(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String, nullable=False)
     simbolo = db.Column(db.String(5), nullable=False)
+    fertilizantes = db.relationship('Fertilizante', backref='unidade_medida', lazy=True)
 
 
 class Fertilizante(db.Model):
@@ -103,6 +104,7 @@ class FertilizanteCultura(db.Model):
     cultura_id = db.Column(
         db.Integer, db.ForeignKey(CULTURA_ID), nullable=False)
     quantidade_recomendada = db.Column(db.Float, nullable=False)
+    cultura = db.relationship('Cultura', backref='fertilizante_culturas', lazy=True)
 
 
 class Fertilizacao(db.Model):

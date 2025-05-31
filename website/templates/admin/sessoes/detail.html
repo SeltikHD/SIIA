@@ -1,0 +1,314 @@
+{% extends "components/base.html" %} {% block title %}{{ sessao.nome }} -
+Detalhes{% endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">{{ sessao.nome }}</h1>
+            <div class="badge badge-primary badge-lg">
+                {{ sessao.cultura.nome }}
+            </div>
+            <div class="breadcrumbs text-sm mt-2">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_sessoes_list') }}">
+                            Sessões
+                        </a>
+                    </li>
+                    <li>{{ sessao.nome }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            {% if current_user.grupo.nivel_acesso >= 4 %}
+            <a
+                href="{{ url_for('admin_sessao_edit', id=sessao.id) }}"
+                class="btn btn-primary"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                </svg>
+                Editar
+            </a>
+            <form
+                method="POST"
+                action="{{ url_for('admin_sessao_delete', id=sessao.id) }}"
+                onsubmit="return confirm('Tem certeza que deseja deletar esta sessão? Esta ação não pode ser desfeita.')"
+                class="inline"
+            >
+                <button type="submit" class="btn btn-error">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                    </svg>
+                    Deletar
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estatísticas Gerais -->
+    <div class="stats shadow mb-8 w-full">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                </svg>
+            </div>
+            <div class="stat-title">Dados Coletados</div>
+            <div class="stat-value text-primary">
+                {{ dados_recentes|length }}
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                    />
+                </svg>
+            </div>
+            <div class="stat-title">Irrigações</div>
+            <div class="stat-value text-secondary">{{ irrigacoes|length }}</div>
+        </div>
+
+        {% if dados_recentes %} {% set ultimo_dado = dados_recentes[0] %}
+        <div class="stat">
+            <div class="stat-title">Última Coleta</div>
+            <div class="stat-value text-sm">
+                {{ ultimo_dado.data_hora.strftime('%d/%m') }}
+            </div>
+            <div class="stat-desc">
+                {{ ultimo_dado.data_hora.strftime('%H:%M') }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Dados Recentes -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Dados Recentes (Últimos 50)</h2>
+
+                {% if dados_recentes %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra table-sm">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Temp</th>
+                                <th>Umid. Ar</th>
+                                <th>Umid. Solo</th>
+                                <th>Exaustor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dado in dados_recentes[:10] %}
+                            <tr>
+                                <td class="text-xs">
+                                    {{ dado.data_hora.strftime('%d/%m %H:%M') }}
+                                </td>
+                                <td class="text-primary font-semibold">
+                                    {{ dado.temperatura }}°C
+                                </td>
+                                <td class="text-secondary">
+                                    {{ dado.umidade_ar }}%
+                                </td>
+                                <td class="text-accent">
+                                    {{ dado.umidade_solo }}%
+                                </td>
+                                <td>
+                                    {% if dado.exaustor_ligado %}
+                                    <div class="badge badge-success badge-xs">
+                                        ON
+                                    </div>
+                                    {% else %}
+                                    <div class="badge badge-ghost badge-xs">
+                                        OFF
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if dados_recentes|length > 10 %}
+                <div class="text-center mt-4">
+                    <div class="text-sm text-base-content/60">
+                        Mostrando 10 de {{ dados_recentes|length }} registros
+                    </div>
+                </div>
+                {% endif %} {% else %}
+                <div class="text-center py-8">
+                    <p class="text-base-content/60">
+                        Nenhum dado coletado ainda
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Irrigações -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Histórico de Irrigações</h2>
+
+                {% if irrigacoes %}
+                <div class="space-y-3">
+                    {% for irrigacao in irrigacoes[:10] %}
+                    <div class="card bg-base-100 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold">
+                                        {% if irrigacao.status %}
+                                        <div class="badge badge-success">
+                                            Ativa
+                                        </div>
+                                        {% else %}
+                                        <div class="badge badge-ghost">
+                                            Finalizada
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-sm text-base-content/60">
+                                        Início: {{
+                                        irrigacao.data_inicio.strftime('%d/%m/%Y
+                                        %H:%M') if irrigacao.data_inicio }}
+                                    </div>
+                                    {% if irrigacao.data_fim %}
+                                    <div class="text-sm text-base-content/60">
+                                        Fim: {{
+                                        irrigacao.data_fim.strftime('%d/%m/%Y
+                                        %H:%M') }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if irrigacao.data_inicio and
+                                irrigacao.data_fim %} {% set duracao =
+                                (irrigacao.data_fim -
+                                irrigacao.data_inicio).total_seconds() %}
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold">
+                                        {% if duracao < 60 %} {{ duracao|int }}s
+                                        {% elif duracao < 3600 %} {{
+                                        (duracao/60)|int }}min {% else %} {{
+                                        (duracao/3600)|round(1) }}h {% endif %}
+                                    </div>
+                                    <div class="text-xs text-base-content/60">
+                                        Duração
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if irrigacoes|length > 10 %}
+                <div class="text-center mt-4">
+                    <div class="text-sm text-base-content/60">
+                        Mostrando 10 de {{ irrigacoes|length }} irrigações
+                    </div>
+                </div>
+                {% endif %} {% else %}
+                <div class="text-center py-8">
+                    <p class="text-base-content/60">
+                        Nenhuma irrigação registrada
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Condições Ideais da Cultura -->
+    {% if sessao.cultura.condicoes_ideais %}
+    <div class="card bg-base-200 shadow-xl mt-8">
+        <div class="card-body">
+            <h2 class="card-title">
+                Condições Ideais - {{ sessao.cultura.nome }}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for condicao in sessao.cultura.condicoes_ideais %}
+                <div class="card bg-base-100 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <div>
+                                <span class="font-semibold">Temperatura:</span>
+                                <div class="text-primary">
+                                    {{ condicao.temperatura_min }}°C - {{
+                                    condicao.temperatura_max }}°C
+                                </div>
+                            </div>
+                            <div>
+                                <span class="font-semibold">Umidade Ar:</span>
+                                <div class="text-secondary">
+                                    {{ condicao.umidade_ar_min }}% - {{
+                                    condicao.umidade_ar_max }}%
+                                </div>
+                            </div>
+                            <div>
+                                <span class="font-semibold">Umidade Solo:</span>
+                                <div class="text-accent">
+                                    {{ condicao.umidade_solo_min }}% - {{
+                                    condicao.umidade_solo_max }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

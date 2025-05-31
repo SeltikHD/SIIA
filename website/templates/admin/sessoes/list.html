@@ -1,0 +1,177 @@
+{% extends "components/base.html" %} {% block title %}Sessões - Administração{%
+endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Sessões de Cultivo</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>Sessões</li>
+                </ul>
+            </div>
+        </div>
+        {% if current_user.grupo.nivel_acesso >= 4 %}
+        <a href="{{ url_for('admin_sessao_create') }}" class="btn btn-primary">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+            </svg>
+            Nova Sessão
+        </a>
+        {% endif %}
+    </div>
+
+    {% if sessoes %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for sessao in sessoes %}
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">{{ sessao.nome }}</h2>
+                <div class="badge badge-primary">{{ sessao.cultura.nome }}</div>
+
+                <div class="stats shadow mt-4">
+                    <div class="stat p-3">
+                        <div class="stat-title text-xs">Dados Coletados</div>
+                        <div class="stat-value text-sm">
+                            {{ sessao.dados_periodicos|length }}
+                        </div>
+                    </div>
+                    <div class="stat p-3">
+                        <div class="stat-title text-xs">Irrigações</div>
+                        <div class="stat-value text-sm">
+                            {{ sessao.irrigacoes|length }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if sessao.dados_periodicos %} {% set ultimo_dado =
+                sessao.dados_periodicos|sort(attribute='data_hora',
+                reverse=true)|first %}
+                <div class="mt-4">
+                    <div class="text-sm text-base-content/60 mb-2">
+                        Último registro:
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div class="text-center">
+                            <div class="font-semibold">
+                                {{ ultimo_dado.temperatura }}°C
+                            </div>
+                            <div class="text-primary">Temp</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-semibold">
+                                {{ ultimo_dado.umidade_ar }}%
+                            </div>
+                            <div class="text-secondary">Ar</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-semibold">
+                                {{ ultimo_dado.umidade_solo }}%
+                            </div>
+                            <div class="text-accent">Solo</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-base-content/50 text-center mt-2">
+                        {{ ultimo_dado.data_hora.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card-actions justify-end mt-4">
+                    <a
+                        href="{{ url_for('admin_sessao_detail', id=sessao.id) }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Ver Detalhes
+                    </a>
+                    {% if current_user.grupo.nivel_acesso >= 4 %}
+                    <div class="dropdown dropdown-end">
+                        <div
+                            tabindex="0"
+                            role="button"
+                            class="btn btn-ghost btn-sm"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                />
+                            </svg>
+                        </div>
+                        <ul
+                            tabindex="0"
+                            class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                        >
+                            <li>
+                                <a
+                                    href="{{ url_for('admin_sessao_edit', id=sessao.id) }}"
+                                >
+                                    Editar
+                                </a>
+                            </li>
+                            <li>
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('admin_sessao_delete', id=sessao.id) }}"
+                                    onsubmit="return confirm('Tem certeza que deseja deletar esta sessão?')"
+                                    class="inline"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="text-error w-full text-left"
+                                    >
+                                        Deletar
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="hero min-h-[300px] bg-base-200 rounded-box">
+        <div class="hero-content text-center">
+            <div class="max-w-md">
+                <h1 class="text-3xl font-bold">Nenhuma sessão encontrada</h1>
+                <p class="py-6">
+                    Não há sessões de cultivo cadastradas no sistema.
+                </p>
+                {% if current_user.grupo.nivel_acesso >= 4 %}
+                <a
+                    href="{{ url_for('admin_sessao_create') }}"
+                    class="btn btn-primary"
+                >
+                    Criar Primeira Sessão
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

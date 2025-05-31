@@ -1,0 +1,122 @@
+{% extends "components/base.html" %}
+{% block title %}Nova Unidade de Medida - Administração{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Nova Unidade de Medida</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_unidades_list') }}">Unidades de Medida</a>
+                    </li>
+                    <li>Nova Unidade</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{{ url_for('admin_unidades_list') }}" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Voltar
+        </a>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-6">Informações da Unidade</h2>
+                
+                <form method="POST" action="{{ url_for('admin_unidade_create') }}" class="space-y-6">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Nome da Unidade *</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="nome" 
+                            class="input input-bordered w-full" 
+                            placeholder="Ex: Quilograma, Litro, Metros Cúbicos..."
+                            required
+                            maxlength="100"
+                        >
+                        <label class="label">
+                            <span class="label-text-alt">Nome completo da unidade de medida</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Símbolo *</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="simbolo" 
+                            class="input input-bordered w-full" 
+                            placeholder="Ex: kg, L, m³..."
+                            required
+                            maxlength="10"
+                        >
+                        <label class="label">
+                            <span class="label-text-alt">Símbolo ou abreviação da unidade</span>
+                        </label>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="font-bold">Dica:</h3>
+                            <p class="text-sm">Use nomes descritivos e símbolos padronizados. Esta unidade poderá ser utilizada em fertilizantes.</p>
+                        </div>
+                    </div>
+
+                    <div class="card-actions justify-end pt-4">
+                        <a href="{{ url_for('admin_unidades_list') }}" class="btn btn-ghost">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Criar Unidade
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Preview da unidade -->
+        <div class="card bg-base-100 shadow-xl mt-6">
+            <div class="card-body">
+                <h3 class="card-title text-lg">Preview da Unidade</h3>
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Nome</div>
+                        <div class="stat-value text-sm" id="preview-nome">-</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Símbolo</div>
+                        <div class="stat-value text-sm" id="preview-simbolo">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview em tempo real
+    document.querySelector('input[name="nome"]').addEventListener('input', function(e) {
+        document.getElementById('preview-nome').textContent = e.target.value || '-';
+    });
+    
+    document.querySelector('input[name="simbolo"]').addEventListener('input', function(e) {
+        document.getElementById('preview-simbolo').textContent = e.target.value || '-';
+    });
+</script>
+{% endblock %}

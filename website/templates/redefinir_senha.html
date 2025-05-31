@@ -1,7 +1,5 @@
-{% extends "components/base.html" %} 
-{% block title %}Redefinir Senha{% endblock title %}
-
-{% block content %}
+{% extends "components/base.html" %} {% block title %}Redefinir Senha{% endblock
+title %} {% block content %}
 <div class="flex items-center justify-center min-h-screen">
     <div class="card w-96 dark:bg-base-200 shadow-xl">
         <div class="card-body">
@@ -9,14 +7,18 @@
                 <h2 class="text-center">Nova Senha</h2>
             </div>
 
-            {% include 'components/flash/error.html' %}
-            {% include 'components/flash/success.html' %}
+            {% include 'components/flash/error.html' %} {% include
+            'components/flash/success.html' %}
 
             <p class="text-center text-base-content/70 mb-6">
                 Digite sua nova senha.
             </p>
 
-            <form action="{{ url_for('redefinir_senha', token=token) }}" method="post" class="space-y-4">
+            <form
+                action="{{ url_for('redefinir_senha', token=token) }}"
+                method="post"
+                class="space-y-4"
+            >
                 <label class="input input-bordered flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -85,15 +87,17 @@
 
 <script>
     // Validação de confirmação de senha
-    document.getElementById('confirmar_senha').addEventListener('input', function() {
-        const senha = document.getElementById('nova_senha').value;
-        const confirmar = this.value;
-        
-        if (senha !== confirmar) {
-            this.setCustomValidity('As senhas não coincidem');
-        } else {
-            this.setCustomValidity('');
-        }
-    });
+    document
+        .getElementById("confirmar_senha")
+        .addEventListener("input", function () {
+            const senha = document.getElementById("nova_senha").value;
+            const confirmar = this.value;
+
+            if (senha !== confirmar) {
+                this.setCustomValidity("As senhas não coincidem");
+            } else {
+                this.setCustomValidity("");
+            }
+        });
 </script>
 {% endblock content %}

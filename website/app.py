@@ -1,15 +1,14 @@
 from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from lib.models import db, Sessao, DadoPeriodico, Cultura, SessaoIrrigacao, Usuario
-from werkzeug.serving import is_running_from_reloader
-from werkzeug.utils import secure_filename
+from lib.models import (db, Sessao, DadoPeriodico, Cultura, SessaoIrrigacao, Usuario, Grupo, CondicaoIdeal, 
+                        Fertilizante, UnidadeMedida, Log, TentativaAcesso)
 from lib.firebase import initialize_firebase
 from argon2 import PasswordHasher, exceptions
 from firebase_admin import auth
-from lib.mqtt import MQTTClient
 from dotenv import load_dotenv
-import logging
+from functools import wraps
+from lib.mqtt import MQTTClient
 import base64
 import os
 import secrets
@@ -38,6 +37,34 @@ login_manager.login_message = 'Faça login para acessar esta página'
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(user_id)
+
+
+# Decoradores de controle de acesso
+def admin_required(nivel_minimo=2):
+    """Decorator para controlar acesso administrativo baseado no nível do grupo"""
+    def decorator(f):
+        @wraps(f)
+        @login_required
+        def decorated_function(*args, **kwargs):
+            if not current_user.grupo or current_user.grupo.nivel_acesso < nivel_minimo:
+                flash(f'Acesso negado. Nível {nivel_minimo} ou superior necessário.', 'error')
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def log_admin_action(action, detalhes=""):
+    """Registra ações administrativas no log"""
+    try:
+        log_entry = Log(
+            usuario_id=current_user.id,
+            mensagem=f"ADMIN: {action} - {detalhes}"
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+    except Exception as e:
+        print(f"Erro ao registrar log: {e}")
 
 
 @app.route('/')
@@ -151,8 +178,19 @@ def google_login():
         usuario = Usuario.query.filter_by(email=email).first()
 
         if not usuario:
+            # Busca o grupo com menor nível de acesso para novos usuários
+            grupo_menor_acesso = Grupo.query.order_by(Grupo.nivel_acesso.asc()).first()
+            
+            if not grupo_menor_acesso:
+                return {"message": "Erro no sistema: nenhum grupo encontrado"}, 500
+            
             # Adiciona a URL da imagem
-            usuario = Usuario(nome=nome, email=email, foto=foto)
+            usuario = Usuario(
+                nome=nome, 
+                email=email, 
+                foto=foto,
+                grupo_id=grupo_menor_acesso.id
+            )
             db.session.add(usuario)
             db.session.commit()
         elif (
@@ -201,16 +239,28 @@ def registrar():
             flash("Já existe um usuário cadastrado com este email.", "error")
             return render_template("registrar.html")
 
+        # Busca o grupo com menor nível de acesso
+        grupo_menor_acesso = Grupo.query.order_by(Grupo.nivel_acesso.asc()).first()
+
+        if not grupo_menor_acesso:
+            flash("Erro no sistema: nenhum grupo encontrado. Entre em contato com o administrador.", "error")
+            return render_template("registrar.html")
+
         # Criptografa a senha
         senha_hash = ph.hash(senha)
 
-        # Cria o novo usuário
-        novo_usuario = Usuario(nome=nome, email=email, senha=senha_hash)
+        # Cria o novo usuário com o grupo de menor acesso
+        novo_usuario = Usuario(
+            nome=nome, 
+            email=email, 
+            senha=senha_hash,
+            grupo_id=grupo_menor_acesso.id
+        )
         db.session.add(novo_usuario)
         db.session.commit()
 
         login_user(novo_usuario)
-        flash("Cadastro realizado com sucesso! Você já está logado.", "success")
+        flash(f"Cadastro realizado com sucesso! Você foi atribuído ao grupo '{grupo_menor_acesso.nome}' e já está logado.", "success")
         return redirect(url_for("index"))
 
     return render_template("registrar.html")
@@ -402,7 +452,7 @@ def enviar_email_recuperacao(email, token):
         msg['Subject'] = 'Recuperação de Senha - SIIA'
 
         # Corpo do email em HTML
-        link_recuperacao = f"http://localhost:5000/redefinir_senha/{token}"
+        link_recuperacao = f"{os.getenv('SITE_URL')}/redefinir_senha/{token}"
         html_body = f"""
         <!DOCTYPE html>
         <html>
@@ -463,6 +513,639 @@ def enviar_email_recuperacao(email, token):
     except Exception as e:
         print(f"Erro ao enviar email: {e}")
         raise e
+
+
+# ===== ROTAS ADMINISTRATIVAS =====
+
+@app.route('/admin')
+@admin_required(2)
+def admin_dashboard():
+    """Dashboard administrativo - Nível 2+"""
+    stats = {
+        'usuarios': Usuario.query.count(),
+        'culturas': Cultura.query.count(),
+        'sessoes': Sessao.query.count(),
+        'fertilizantes': Fertilizante.query.count()
+    }
+    
+    # Atividade recente (últimos logs)
+    logs_recentes = Log.query.order_by(Log.data_hora.desc()).limit(10).all()
+    
+    return render_template('admin/dashboard.html', 
+                         stats=stats, 
+                         logs_recentes=logs_recentes,
+                         nivel_usuario=current_user.grupo.nivel_acesso)
+
+
+# ===== NÍVEL 2: Visualização detalhada =====
+
+@app.route('/admin/culturas')
+@admin_required(2)
+def admin_culturas_list():
+    """Lista de culturas - Nível 2+"""
+    culturas = Cultura.query.all()
+    return render_template('admin/culturas/list.html', culturas=culturas)
+
+
+@app.route('/admin/culturas/<int:id>')
+@admin_required(2)
+def admin_cultura_detail(id):
+    """Detalhes de uma cultura - Nível 2+"""
+    cultura = Cultura.query.get_or_404(id)
+    condicoes = CondicaoIdeal.query.filter_by(cultura_id=id).all()
+    sessoes = Sessao.query.filter_by(cultura_id=id).all()
+    
+    return render_template('admin/culturas/detail.html', 
+                         cultura=cultura, 
+                         condicoes=condicoes,
+                         sessoes=sessoes)
+
+
+@app.route('/admin/sessoes')
+@admin_required(2)
+def admin_sessoes_list():
+    """Lista de sessões - Nível 2+"""
+    sessoes = Sessao.query.all()
+    return render_template('admin/sessoes/list.html', sessoes=sessoes)
+
+
+@app.route('/admin/sessoes/<int:id>')
+@admin_required(2)
+def admin_sessao_detail(id):
+    """Detalhes de uma sessão - Nível 2+"""
+    sessao = Sessao.query.get_or_404(id)
+    dados_recentes = DadoPeriodico.query.filter_by(sessao_id=id).order_by(DadoPeriodico.data_hora.desc()).limit(50).all()
+    irrigacoes = SessaoIrrigacao.query.filter_by(sessao_id=id).order_by(SessaoIrrigacao.data_inicio.desc()).all()
+    
+    return render_template('admin/sessoes/detail.html', 
+                         sessao=sessao, 
+                         dados_recentes=dados_recentes,
+                         irrigacoes=irrigacoes)
+
+
+# ===== NÍVEL 3: CRUD de culturas, condições, fertilizantes =====
+
+@app.route('/admin/culturas/create', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_cultura_create():
+    """Criar nova cultura - Nível 3+"""
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/culturas/create.html')
+        
+        # Verifica se já existe
+        if Cultura.query.filter_by(nome=nome).first():
+            flash('Já existe uma cultura com este nome', 'error')
+            return render_template('admin/culturas/create.html')
+        
+        cultura = Cultura(nome=nome)
+        db.session.add(cultura)
+        db.session.commit()
+        
+        log_admin_action('Cultura criada', f'Nome: {nome}')
+        flash('Cultura criada com sucesso!', 'success')
+        return redirect(url_for('admin_culturas_list'))
+    
+    return render_template('admin/culturas/create.html')
+
+
+@app.route('/admin/culturas/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_cultura_edit(id):
+    """Editar cultura - Nível 3+"""
+    cultura = Cultura.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/culturas/edit.html', cultura=cultura)
+        
+        # Verifica se já existe outro com o mesmo nome
+        existente = Cultura.query.filter_by(nome=nome).filter(Cultura.id != id).first()
+        if existente:
+            flash('Já existe uma cultura com este nome', 'error')
+            return render_template('admin/culturas/edit.html', cultura=cultura)
+        
+        nome_antigo = cultura.nome
+        cultura.nome = nome
+        db.session.commit()
+        
+        log_admin_action('Cultura editada', f'ID: {id}, Nome: {nome_antigo} -> {nome}')
+        flash('Cultura atualizada com sucesso!', 'success')
+        return redirect(url_for('admin_cultura_detail', id=id))
+    
+    return render_template('admin/culturas/edit.html', cultura=cultura)
+
+
+@app.route('/admin/culturas/<int:id>/delete', methods=['POST'])
+@admin_required(3)
+def admin_cultura_delete(id):
+    """Deletar cultura - Nível 3+"""
+    cultura = Cultura.query.get_or_404(id)
+    
+    # Verifica se tem sessões associadas
+    if cultura.sessoes:
+        flash('Não é possível deletar uma cultura que possui sessões associadas', 'error')
+        return redirect(url_for('admin_cultura_detail', id=id))
+    
+    nome = cultura.nome
+    
+    # Remove condições ideais associadas
+    CondicaoIdeal.query.filter_by(cultura_id=id).delete()
+    
+    db.session.delete(cultura)
+    db.session.commit()
+    
+    log_admin_action('Cultura deletada', f'ID: {id}, Nome: {nome}')
+    flash('Cultura deletada com sucesso!', 'success')
+    return redirect(url_for('admin_culturas_list'))
+
+
+@app.route('/admin/condicoes-ideais')
+@admin_required(3)
+def admin_condicoes_list():
+    """Lista de condições ideais - Nível 3+"""
+    condicoes = CondicaoIdeal.query.all()
+    return render_template('admin/condicoes/list.html', condicoes=condicoes)
+
+
+@app.route('/admin/condicoes-ideais/create', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_condicao_create():
+    """Criar condição ideal - Nível 3+"""
+    if request.method == 'POST':
+        try:
+            cultura_id = int(request.form.get('cultura_id'))
+            temp_min = float(request.form.get('temperatura_min'))
+            temp_max = float(request.form.get('temperatura_max'))
+            umid_ar_min = float(request.form.get('umidade_ar_min'))
+            umid_ar_max = float(request.form.get('umidade_ar_max'))
+            umid_solo_min = float(request.form.get('umidade_solo_min'))
+            umid_solo_max = float(request.form.get('umidade_solo_max'))
+            
+            # Validações
+            if temp_min >= temp_max:
+                flash('Temperatura mínima deve ser menor que a máxima', 'error')
+                raise ValueError()
+            
+            if umid_ar_min >= umid_ar_max:
+                flash('Umidade do ar mínima deve ser menor que a máxima', 'error')
+                raise ValueError()
+            
+            if umid_solo_min >= umid_solo_max:
+                flash('Umidade do solo mínima deve ser menor que a máxima', 'error')
+                raise ValueError()
+            
+            # Verifica se já existe condição para esta cultura
+            if CondicaoIdeal.query.filter_by(cultura_id=cultura_id).first():
+                flash('Já existe uma condição ideal para esta cultura', 'error')
+                raise ValueError()
+            
+            condicao = CondicaoIdeal(
+                cultura_id=cultura_id,
+                temperatura_min=temp_min,
+                temperatura_max=temp_max,
+                umidade_ar_min=umid_ar_min,
+                umidade_ar_max=umid_ar_max,
+                umidade_solo_min=umid_solo_min,
+                umidade_solo_max=umid_solo_max
+            )
+            
+            db.session.add(condicao)
+            db.session.commit()
+            
+            cultura = Cultura.query.get(cultura_id)
+            log_admin_action('Condição ideal criada', f'Cultura: {cultura.nome}')
+            flash('Condição ideal criada com sucesso!', 'success')
+            return redirect(url_for('admin_condicoes_list'))
+            
+        except (ValueError, TypeError):
+            pass
+    
+    culturas = Cultura.query.all()
+    return render_template('admin/condicoes/create.html', culturas=culturas)
+
+
+@app.route('/admin/fertilizantes')
+@admin_required(3)
+def admin_fertilizantes_list():
+    """Lista de fertilizantes - Nível 3+"""
+    fertilizantes = Fertilizante.query.all()
+    return render_template('admin/fertilizantes/list.html', fertilizantes=fertilizantes)
+
+
+@app.route('/admin/fertilizantes/create', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_fertilizante_create():
+    """Criar fertilizante - Nível 3+"""
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        unidade_medida_id = request.form.get('unidade_medida_id')
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/fertilizantes/create.html')
+        
+        if not unidade_medida_id:
+            flash('Unidade de medida é obrigatória', 'error')
+            return render_template('admin/fertilizantes/create.html')
+        
+        try:
+            unidade_medida_id = int(unidade_medida_id)
+        except ValueError:
+            flash('Unidade de medida inválida', 'error')
+            return render_template('admin/fertilizantes/create.html')
+        
+        # Verifica se já existe
+        if Fertilizante.query.filter_by(nome=nome).first():
+            flash('Já existe um fertilizante com este nome', 'error')
+            return render_template('admin/fertilizantes/create.html')
+        
+        fertilizante = Fertilizante(nome=nome, unidade_medida_id=unidade_medida_id)
+        db.session.add(fertilizante)
+        db.session.commit()
+        
+        log_admin_action('Fertilizante criado', f'Nome: {nome}')
+        flash('Fertilizante criado com sucesso!', 'success')
+        return redirect(url_for('admin_fertilizantes_list'))
+    
+    unidades = UnidadeMedida.query.all()
+    return render_template('admin/fertilizantes/create.html', unidades=unidades)
+
+
+@app.route('/admin/fertilizantes/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_fertilizante_edit(id):
+    """Editar fertilizante - Nível 3+"""
+    fertilizante = Fertilizante.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        unidade_medida_id = request.form.get('unidade_medida_id')
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/fertilizantes/edit.html', fertilizante=fertilizante)
+        
+        if not unidade_medida_id:
+            flash('Unidade de medida é obrigatória', 'error')
+            return render_template('admin/fertilizantes/edit.html', fertilizante=fertilizante)
+        
+        try:
+            unidade_medida_id = int(unidade_medida_id)
+        except ValueError:
+            flash('Unidade de medida inválida', 'error')
+            return render_template('admin/fertilizantes/edit.html', fertilizante=fertilizante)
+        
+        # Verifica se já existe outro com o mesmo nome
+        existente = Fertilizante.query.filter_by(nome=nome).filter(Fertilizante.id != id).first()
+        if existente:
+            flash('Já existe um fertilizante com este nome', 'error')
+            return render_template('admin/fertilizantes/edit.html', fertilizante=fertilizante)
+        
+        nome_antigo = fertilizante.nome
+        fertilizante.nome = nome
+        fertilizante.unidade_medida_id = unidade_medida_id
+        db.session.commit()
+        
+        log_admin_action('Fertilizante editado', f'ID: {id}, Nome: {nome_antigo} -> {nome}')
+        flash('Fertilizante atualizado com sucesso!', 'success')
+        return redirect(url_for('admin_fertilizantes_list'))
+    
+    unidades = UnidadeMedida.query.all()
+    return render_template('admin/fertilizantes/edit.html', fertilizante=fertilizante, unidades=unidades)
+
+
+@app.route('/admin/fertilizantes/<int:id>/delete', methods=['POST'])
+@admin_required(3)
+def admin_fertilizante_delete(id):
+    """Deletar fertilizante - Nível 3+"""
+    fertilizante = Fertilizante.query.get_or_404(id)
+    
+    # Verifica se tem culturas associadas
+    if fertilizante.culturas:
+        flash('Não é possível deletar um fertilizante que possui culturas associadas', 'error')
+        return redirect(url_for('admin_fertilizantes_list'))
+    
+    nome = fertilizante.nome
+    
+    db.session.delete(fertilizante)
+    db.session.commit()
+    
+    log_admin_action('Fertilizante deletado', f'ID: {id}, Nome: {nome}')
+    flash('Fertilizante deletado com sucesso!', 'success')
+    return redirect(url_for('admin_fertilizantes_list'))
+
+
+@app.route('/admin/unidades-medida')
+@admin_required(3)
+def admin_unidades_list():
+    """Lista de unidades de medida - Nível 3+"""
+    unidades = UnidadeMedida.query.all()
+    return render_template('admin/unidades/list.html', unidades=unidades)
+
+
+@app.route('/admin/unidades-medida/create', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_unidade_create():
+    """Criar unidade de medida - Nível 3+"""
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        simbolo = request.form.get('simbolo', '').strip()
+        
+        if not nome or not simbolo:
+            flash('Nome e símbolo são obrigatórios', 'error')
+            return render_template('admin/unidades/create.html')
+        
+        # Verifica se já existe
+        if UnidadeMedida.query.filter_by(nome=nome).first():
+            flash('Já existe uma unidade com este nome', 'error')
+            return render_template('admin/unidades/create.html')
+        
+        if UnidadeMedida.query.filter_by(simbolo=simbolo).first():
+            flash('Já existe uma unidade com este símbolo', 'error')
+            return render_template('admin/unidades/create.html')
+        
+        unidade = UnidadeMedida(nome=nome, simbolo=simbolo)
+        db.session.add(unidade)
+        db.session.commit()
+        
+        log_admin_action('Unidade de medida criada', f'Nome: {nome}, Símbolo: {simbolo}')
+        flash('Unidade de medida criada com sucesso!', 'success')
+        return redirect(url_for('admin_unidades_list'))
+    
+    return render_template('admin/unidades/create.html')
+
+
+@app.route('/admin/unidades-medida/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required(3)
+def admin_unidade_edit(id):
+    """Editar unidade de medida - Nível 3+"""
+    unidade = UnidadeMedida.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        simbolo = request.form.get('simbolo', '').strip()
+        
+        if not nome or not simbolo:
+            flash('Nome e símbolo são obrigatórios', 'error')
+            return render_template('admin/unidades/edit.html', unidade=unidade)
+        
+        # Verifica se já existe outro com o mesmo nome
+        existente_nome = UnidadeMedida.query.filter_by(nome=nome).filter(UnidadeMedida.id != id).first()
+        if existente_nome:
+            flash('Já existe uma unidade com este nome', 'error')
+            return render_template('admin/unidades/edit.html', unidade=unidade)
+        
+        existente_simbolo = UnidadeMedida.query.filter_by(simbolo=simbolo).filter(UnidadeMedida.id != id).first()
+        if existente_simbolo:
+            flash('Já existe uma unidade com este símbolo', 'error')
+            return render_template('admin/unidades/edit.html', unidade=unidade)
+        
+        nome_antigo = unidade.nome
+        simbolo_antigo = unidade.simbolo
+        unidade.nome = nome
+        unidade.simbolo = simbolo
+        db.session.commit()
+        
+        log_admin_action('Unidade de medida editada', f'ID: {id}, Nome: {nome_antigo} -> {nome}, Símbolo: {simbolo_antigo} -> {simbolo}')
+        flash('Unidade de medida atualizada com sucesso!', 'success')
+        return redirect(url_for('admin_unidades_list'))
+    
+    return render_template('admin/unidades/edit.html', unidade=unidade)
+
+
+@app.route('/admin/unidades-medida/<int:id>/delete', methods=['POST'])
+@admin_required(3)
+def admin_unidade_delete(id):
+    """Deletar unidade de medida - Nível 3+"""
+    unidade = UnidadeMedida.query.get_or_404(id)
+    
+    # Verifica se tem fertilizantes associados
+    if unidade.fertilizantes:
+        flash('Não é possível deletar uma unidade que possui fertilizantes associados', 'error')
+        return redirect(url_for('admin_unidades_list'))
+    
+    nome = unidade.nome
+    simbolo = unidade.simbolo
+    
+    db.session.delete(unidade)
+    db.session.commit()
+    
+    log_admin_action('Unidade de medida deletada', f'ID: {id}, Nome: {nome}, Símbolo: {simbolo}')
+    flash('Unidade de medida deletada com sucesso!', 'success')
+    return redirect(url_for('admin_unidades_list'))
+
+
+# ===== NÍVEL 4: CRUD de sessões =====
+
+@app.route('/admin/sessoes/create', methods=['GET', 'POST'])
+@admin_required(4)
+def admin_sessao_create():
+    """Criar nova sessão - Nível 4+"""
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        cultura_id = request.form.get('cultura_id')
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/sessoes/create.html')
+        
+        if not cultura_id:
+            flash('Cultura é obrigatória', 'error')
+            return render_template('admin/sessoes/create.html')
+        
+        try:
+            cultura_id = int(cultura_id)
+        except ValueError:
+            flash('Cultura inválida', 'error')
+            return render_template('admin/sessoes/create.html')
+        
+        # Verifica se já existe sessão com este nome
+        if Sessao.query.filter_by(nome=nome).first():
+            flash('Já existe uma sessão com este nome', 'error')
+            return render_template('admin/sessoes/create.html')
+        
+        sessao = Sessao(nome=nome, cultura_id=cultura_id)
+        db.session.add(sessao)
+        db.session.commit()
+        
+        cultura = Cultura.query.get(cultura_id)
+        log_admin_action('Sessão criada', f'Nome: {nome}, Cultura: {cultura.nome}')
+        flash('Sessão criada com sucesso!', 'success')
+        return redirect(url_for('admin_sessoes_list'))
+    
+    culturas = Cultura.query.all()
+    return render_template('admin/sessoes/create.html', culturas=culturas)
+
+
+@app.route('/admin/sessoes/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required(4)
+def admin_sessao_edit(id):
+    """Editar sessão - Nível 4+"""
+    sessao = Sessao.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        cultura_id = request.form.get('cultura_id')
+        
+        if not nome:
+            flash('Nome é obrigatório', 'error')
+            return render_template('admin/sessoes/edit.html', sessao=sessao)
+        
+        if not cultura_id:
+            flash('Cultura é obrigatória', 'error')
+            return render_template('admin/sessoes/edit.html', sessao=sessao)
+        
+        try:
+            cultura_id = int(cultura_id)
+        except ValueError:
+            flash('Cultura inválida', 'error')
+            return render_template('admin/sessoes/edit.html', sessao=sessao)
+        
+        # Verifica se já existe outra sessão com este nome
+        existente = Sessao.query.filter_by(nome=nome).filter(Sessao.id != id).first()
+        if existente:
+            flash('Já existe uma sessão com este nome', 'error')
+            return render_template('admin/sessoes/edit.html', sessao=sessao)
+        
+        nome_antigo = sessao.nome
+        cultura_antiga = sessao.cultura.nome
+        
+        sessao.nome = nome
+        sessao.cultura_id = cultura_id
+        db.session.commit()
+        
+        cultura_nova = Cultura.query.get(cultura_id)
+        log_admin_action('Sessão editada', f'ID: {id}, Nome: {nome_antigo} -> {nome}, Cultura: {cultura_antiga} -> {cultura_nova.nome}')
+        flash('Sessão atualizada com sucesso!', 'success')
+        return redirect(url_for('admin_sessao_detail', id=id))
+    
+    culturas = Cultura.query.all()
+    return render_template('admin/sessoes/edit.html', sessao=sessao, culturas=culturas)
+
+
+@app.route('/admin/sessoes/<int:id>/delete', methods=['POST'])
+@admin_required(4)
+def admin_sessao_delete(id):
+    """Deletar sessão - Nível 4+"""
+    sessao = Sessao.query.get_or_404(id)
+    
+    nome = sessao.nome
+    cultura_nome = sessao.cultura.nome
+    
+    # Remove dados relacionados
+    DadoPeriodico.query.filter_by(sessao_id=id).delete()
+    SessaoIrrigacao.query.filter_by(sessao_id=id).delete()
+    
+    db.session.delete(sessao)
+    db.session.commit()
+    
+    log_admin_action('Sessão deletada', f'ID: {id}, Nome: {nome}, Cultura: {cultura_nome}')
+    flash('Sessão deletada com sucesso!', 'success')
+    return redirect(url_for('admin_sessoes_list'))
+
+
+# ===== NÍVEL 5: Gerenciamento de usuários e logs =====
+
+@app.route('/admin/usuarios')
+@admin_required(5)
+def admin_usuarios_list():
+    """Lista de usuários - Nível 5+"""
+    usuarios = Usuario.query.all()
+    grupos = Grupo.query.all()
+    return render_template('admin/usuarios/list.html', usuarios=usuarios, grupos=grupos)
+
+
+@app.route('/admin/usuarios/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required(5)
+def admin_usuario_edit(id):
+    """Editar usuário - Nível 5+"""
+    usuario = Usuario.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        email = request.form.get('email', '').strip()
+        grupo_id = request.form.get('grupo_id')
+        
+        if not nome or not email:
+            flash('Nome e email são obrigatórios', 'error')
+            return render_template('admin/usuarios/edit.html', usuario=usuario)
+        
+        try:
+            grupo_id = int(grupo_id)
+        except (ValueError, TypeError):
+            flash('Grupo inválido', 'error')
+            return render_template('admin/usuarios/edit.html', usuario=usuario)
+        
+        # Verifica se email já está em uso por outro usuário
+        existente = Usuario.query.filter_by(email=email).filter(Usuario.id != id).first()
+        if existente:
+            flash('Este email já está sendo usado por outro usuário', 'error')
+            return render_template('admin/usuarios/edit.html', usuario=usuario)
+        
+        nome_antigo = usuario.nome
+        email_antigo = usuario.email
+        grupo_antigo = usuario.grupo.nome
+        
+        usuario.nome = nome
+        usuario.email = email
+        usuario.grupo_id = grupo_id
+        db.session.commit()
+        
+        grupo_novo = Grupo.query.get(grupo_id)
+        log_admin_action('Usuário editado', f'ID: {id}, Nome: {nome_antigo} -> {nome}, Email: {email_antigo} -> {email}, Grupo: {grupo_antigo} -> {grupo_novo.nome}')
+        flash('Usuário atualizado com sucesso!', 'success')
+        return redirect(url_for('admin_usuarios_list'))
+    
+    grupos = Grupo.query.all()
+    return render_template('admin/usuarios/edit.html', usuario=usuario, grupos=grupos)
+
+
+@app.route('/admin/usuarios/<int:id>/delete', methods=['POST'])
+@admin_required(5)
+def admin_usuario_delete(id):
+    """Deletar usuário - Nível 5+"""
+    usuario = Usuario.query.get_or_404(id)
+    
+    # Não pode deletar a si mesmo
+    if usuario.id == current_user.id:
+        flash('Você não pode deletar sua própria conta', 'error')
+        return redirect(url_for('admin_usuarios_list'))
+    
+    nome = usuario.nome
+    email = usuario.email
+    
+    # Remove dados relacionados
+    Log.query.filter_by(usuario_id=id).delete()
+    TentativaAcesso.query.filter_by(usuario_id=id).delete()
+    
+    db.session.delete(usuario)
+    db.session.commit()
+    
+    log_admin_action('Usuário deletado', f'ID: {id}, Nome: {nome}, Email: {email}')
+    flash('Usuário deletado com sucesso!', 'success')
+    return redirect(url_for('admin_usuarios_list'))
+
+
+@app.route('/admin/logs')
+@admin_required(5)
+def admin_logs_list():
+    """Lista de logs - Nível 5+"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    logs = Log.query.order_by(Log.data_hora.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return render_template('admin/logs/list.html', logs=logs)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

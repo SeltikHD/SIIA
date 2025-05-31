@@ -1,0 +1,182 @@
+{% extends "components/base.html" %}
+{% block title %}Editar Fertilizante - Administração{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Editar Fertilizante</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_fertilizantes_list') }}">Fertilizantes</a>
+                    </li>
+                    <li>Editar {{ fertilizante.nome }}</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{{ url_for('admin_fertilizantes_list') }}" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Voltar
+        </a>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-6">Informações do Fertilizante</h2>
+                
+                <form method="POST" action="{{ url_for('admin_fertilizante_edit', id=fertilizante.id) }}" class="space-y-6">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Nome do Fertilizante *</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="nome" 
+                            class="input input-bordered w-full" 
+                            placeholder="Ex: NPK 10-10-10, Ureia, Superfosfato..."
+                            value="{{ request.form.nome or fertilizante.nome }}"
+                            required
+                            maxlength="100"
+                        >
+                        <label class="label">
+                            <span class="label-text-alt">Nome do fertilizante para identificação</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Unidade de Medida *</span>
+                        </label>
+                        <select name="unidade_medida_id" class="select select-bordered w-full" required>
+                            <option value="">Selecione a unidade</option>
+                            {% set current_unidade = request.form.unidade_medida_id or fertilizante.unidade_medida_id %}
+                            {% for unidade in unidades %}
+                            <option value="{{ unidade.id }}" 
+                                    {{ 'selected' if current_unidade|string == unidade.id|string else '' }}>
+                                {{ unidade.nome }} ({{ unidade.simbolo }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">
+                                Não encontra a unidade? 
+                                <a href="{{ url_for('admin_unidade_create') }}" class="link link-primary">Criar nova unidade</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="font-bold">Informação:</h3>
+                            <p class="text-sm">Após salvar, você poderá configurar as dosagens recomendadas para cada cultura.</p>
+                        </div>
+                    </div>
+
+                    <div class="card-actions justify-end pt-4">
+                        <a href="{{ url_for('admin_fertilizantes_list') }}" class="btn btn-ghost">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Informações do sistema -->
+        {% if fertilizante.data_criacao %}
+        <div class="card bg-base-100 shadow-xl mt-6">
+            <div class="card-body">
+                <h3 class="card-title text-lg">Informações do Sistema</h3>
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Criado em</div>
+                        <div class="stat-value text-sm">{{ fertilizante.data_criacao.strftime('%d/%m/%Y') }}</div>
+                        <div class="stat-desc">{{ fertilizante.data_criacao.strftime('%H:%M') }}</div>
+                    </div>
+                    {% if fertilizante.data_atualizacao %}
+                    <div class="stat">
+                        <div class="stat-title">Atualizado em</div>
+                        <div class="stat-value text-sm">{{ fertilizante.data_atualizacao.strftime('%d/%m/%Y') }}</div>
+                        <div class="stat-desc">{{ fertilizante.data_atualizacao.strftime('%H:%M') }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Culturas que usam este fertilizante -->
+        {% if fertilizante.culturas %}
+        <div class="card bg-base-100 shadow-xl mt-6">
+            <div class="card-body">
+                <h3 class="card-title text-lg">Culturas que usam este fertilizante</h3>
+                <div class="grid grid-cols-1 gap-2">
+                    {% for fertilizante_cultura in fertilizante.culturas %}
+                    <div class="flex justify-between items-center bg-base-200 p-3 rounded">
+                        <span class="font-medium">{{ fertilizante_cultura.cultura.nome }}</span>
+                        <div class="badge badge-secondary">
+                            {{ fertilizante_cultura.quantidade_recomendada }} {{ fertilizante.unidade_medida.simbolo }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Preview do fertilizante -->
+        <div class="card bg-base-100 shadow-xl mt-6">
+            <div class="card-body">
+                <h3 class="card-title text-lg">Preview do Fertilizante</h3>
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Nome</div>
+                        <div class="stat-value text-sm" id="preview-nome">{{ fertilizante.nome }}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Unidade</div>
+                        <div class="stat-value text-sm" id="preview-unidade">{{ fertilizante.unidade_medida.simbolo }}</div>
+                        <div class="stat-desc" id="preview-unidade-nome">{{ fertilizante.unidade_medida.nome }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview em tempo real
+    document.querySelector('input[name="nome"]').addEventListener('input', function(e) {
+        document.getElementById('preview-nome').textContent = e.target.value || '-';
+    });
+    
+    document.querySelector('select[name="unidade_medida_id"]').addEventListener('change', function(e) {
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        if (selectedOption.value) {
+            const text = selectedOption.textContent;
+            const match = text.match(/^(.+)\s\((.+)\)$/);
+            if (match) {
+                document.getElementById('preview-unidade-nome').textContent = match[1];
+                document.getElementById('preview-unidade').textContent = match[2];
+            }
+        } else {
+            document.getElementById('preview-unidade-nome').textContent = '-';
+            document.getElementById('preview-unidade').textContent = '-';
+        }
+    });
+</script>
+{% endblock %}

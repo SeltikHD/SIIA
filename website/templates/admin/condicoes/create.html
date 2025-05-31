@@ -1,0 +1,231 @@
+{% extends "components/base.html" %}
+
+{% block title %}Nova Condição Ideal - Administração{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Nova Condição Ideal</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_condicoes_list') }}">Condições</a></li>
+                    <li>Nova</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-control w-full mb-4">
+                        <label class="label">
+                            <span class="label-text font-semibold">Cultura</span>
+                        </label>
+                        <select name="cultura_id" class="select select-bordered w-full" required>
+                            <option disabled {% if not request.args.get('cultura_id') %}selected{% endif %}>Selecione uma cultura</option>
+                            {% for cultura in culturas %}
+                            <option value="{{ cultura.id }}" 
+                                {% if request.args.get('cultura_id')|int == cultura.id %}selected{% endif %}>
+                                {{ cultura.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">
+                                {% if not culturas %}
+                                <a href="{{ url_for('admin_cultura_create') }}" class="link text-primary">Criar primeira cultura</a>
+                                {% endif %}
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Temperatura -->
+                    <div class="card bg-base-100 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-lg text-primary">Temperatura (°C)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Mínima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="temperatura_min" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="50"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 18.0"
+                                    />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Máxima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="temperatura_max" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="50"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 25.0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Umidade do Ar -->
+                    <div class="card bg-base-100 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-lg text-secondary">Umidade do Ar (%)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Mínima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="umidade_ar_min" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="100"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 60.0"
+                                    />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Máxima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="umidade_ar_max" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="100"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 80.0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Umidade do Solo -->
+                    <div class="card bg-base-100 shadow-sm mb-6">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-lg text-accent">Umidade do Solo (%)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Mínima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="umidade_solo_min" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="100"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 40.0"
+                                    />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Máxima</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        name="umidade_solo_max" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="100"
+                                        class="input input-bordered" 
+                                        required
+                                        placeholder="Ex: 70.0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not culturas %}
+                    <div class="alert alert-warning mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.08 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span>É necessário ter pelo menos uma cultura cadastrada para criar condições ideais.</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-control">
+                        <button type="submit" class="btn btn-primary" {% if not culturas %}disabled{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Criar Condição
+                        </button>
+                    </div>
+
+                    <div class="form-control mt-4">
+                        <a href="{{ url_for('admin_condicoes_list') }}" class="btn btn-ghost">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dica -->
+        <div class="alert alert-info mt-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>As condições ideais servem como referência para monitoramento automático e alertas do sistema.</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validação simples para garantir que mínimo <= máximo
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const tempMin = parseFloat(document.querySelector('input[name="temperatura_min"]').value);
+        const tempMax = parseFloat(document.querySelector('input[name="temperatura_max"]').value);
+        const umidArMin = parseFloat(document.querySelector('input[name="umidade_ar_min"]').value);
+        const umidArMax = parseFloat(document.querySelector('input[name="umidade_ar_max"]').value);
+        const umidSoloMin = parseFloat(document.querySelector('input[name="umidade_solo_min"]').value);
+        const umidSoloMax = parseFloat(document.querySelector('input[name="umidade_solo_max"]').value);
+        
+        if (tempMin >= tempMax) {
+            e.preventDefault();
+            alert('A temperatura mínima deve ser menor que a máxima');
+            return;
+        }
+        if (umidArMin >= umidArMax) {
+            e.preventDefault();
+            alert('A umidade do ar mínima deve ser menor que a máxima');
+            return;
+        }
+        if (umidSoloMin >= umidSoloMax) {
+            e.preventDefault();
+            alert('A umidade do solo mínima deve ser menor que a máxima');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

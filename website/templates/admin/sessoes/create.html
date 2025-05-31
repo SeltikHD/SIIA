@@ -1,0 +1,102 @@
+{% extends "components/base.html" %}
+
+{% block title %}Nova Sessão - Administração{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Nova Sessão</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_sessoes_list') }}">Sessões</a></li>
+                    <li>Nova</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Nome da Sessão</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="nome" 
+                            placeholder="Ex: Cultivo Primavera 2024, Teste Hidroponia..." 
+                            class="input input-bordered w-full" 
+                            required
+                            maxlength="100"
+                        />
+                        <label class="label">
+                            <span class="label-text-alt">O nome deve ser único no sistema</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control w-full mt-4">
+                        <label class="label">
+                            <span class="label-text font-semibold">Cultura</span>
+                        </label>
+                        <select name="cultura_id" class="select select-bordered w-full" required>
+                            <option disabled {% if not request.args.get('cultura_id') %}selected{% endif %}>Selecione uma cultura</option>
+                            {% for cultura in culturas %}
+                            <option value="{{ cultura.id }}" 
+                                {% if request.args.get('cultura_id')|int == cultura.id %}selected{% endif %}>
+                                {{ cultura.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">
+                                {% if not culturas %}
+                                <a href="{{ url_for('admin_cultura_create') }}" class="link text-primary">Criar primeira cultura</a>
+                                {% else %}
+                                Escolha a cultura que será cultivada nesta sessão
+                                {% endif %}
+                            </span>
+                        </label>
+                    </div>
+
+                    {% if not culturas %}
+                    <div class="alert alert-warning mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.08 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span>É necessário ter pelo menos uma cultura cadastrada para criar uma sessão.</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary" {% if not culturas %}disabled{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Criar Sessão
+                        </button>
+                    </div>
+
+                    <div class="form-control mt-4">
+                        <a href="{{ url_for('admin_sessoes_list') }}" class="btn btn-ghost">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dica -->
+        <div class="alert alert-info mt-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Uma sessão representa um período específico de cultivo. Após criá-la, dados serão coletados automaticamente.</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

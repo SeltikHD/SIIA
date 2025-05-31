@@ -1,7 +1,5 @@
-{% extends "components/base.html" %} 
-{% block title %}Esqueci a Senha{% endblock title %}
-
-{% block content %}
+{% extends "components/base.html" %} {% block title %}Esqueci a Senha{% endblock
+title %} {% block content %}
 <div class="flex items-center justify-center min-h-screen">
     <div class="card w-96 dark:bg-base-200 shadow-xl">
         <div class="card-body">
@@ -9,14 +7,19 @@
                 <h2 class="text-center">Recuperar Senha</h2>
             </div>
 
-            {% include 'components/flash/error.html' %}
-            {% include 'components/flash/success.html' %}
+            {% include 'components/flash/error.html' %} {% include
+            'components/flash/success.html' %}
 
             <p class="text-center text-base-content/70 mb-6">
-                Digite seu email para receber as instruções de recuperação de senha.
+                Digite seu email para receber as instruções de recuperação de
+                senha.
             </p>
 
-            <form action="{{ url_for('esqueci_senha') }}" method="post" class="space-y-4">
+            <form
+                action="{{ url_for('esqueci_senha') }}"
+                method="post"
+                class="space-y-4"
+            >
                 <label class="input input-bordered flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

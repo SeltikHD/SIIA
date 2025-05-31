@@ -28,7 +28,62 @@
                 <li>
                     <a href="{{ url_for('perfil') }}">Perfil</a>
                 </li>
-                {% endif %}
+                {% if current_user.grupo and current_user.grupo.nivel_acesso >=
+                2 %}
+                <li>
+                    <details>
+                        <summary>Administração</summary>
+                        <ul class="p-2">
+                            <li>
+                                <a href="{{ url_for('admin_dashboard') }}">
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('admin_culturas_list') }}">
+                                    Culturas
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('admin_sessoes_list') }}">
+                                    Sessões
+                                </a>
+                            </li>
+                            {% if current_user.grupo.nivel_acesso >= 3 %}
+                            <li>
+                                <a href="{{ url_for('admin_condicoes_list') }}">
+                                    Condições Ideais
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="{{ url_for('admin_fertilizantes_list') }}"
+                                >
+                                    Fertilizantes
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('admin_unidades_list') }}">
+                                    Unidades de Medida
+                                </a>
+                            </li>
+                            {% endif %} {% if current_user.grupo.nivel_acesso >=
+                            5 %}
+                            <li>
+                                <a href="{{ url_for('admin_usuarios_list') }}">
+                                    Usuários
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('admin_logs_list') }}">
+                                    Logs
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </details>
+                </li>
+                {% endif %} {% endif %}
                 <div class="divider"></div>
                 {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>

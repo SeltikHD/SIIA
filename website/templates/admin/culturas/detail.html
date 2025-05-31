@@ -1,0 +1,206 @@
+{% extends "components/base.html" %} {% block title %}{{ cultura.nome }} -
+Detalhes{% endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">{{ cultura.nome }}</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_culturas_list') }}">
+                            Culturas
+                        </a>
+                    </li>
+                    <li>{{ cultura.nome }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            {% if current_user.grupo.nivel_acesso >= 3 %}
+            <a
+                href="{{ url_for('admin_cultura_edit', id=cultura.id) }}"
+                class="btn btn-primary"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                </svg>
+                Editar
+            </a>
+            <form
+                method="POST"
+                action="{{ url_for('admin_cultura_delete', id=cultura.id) }}"
+                onsubmit="return confirm('Tem certeza que deseja deletar esta cultura? Esta ação não pode ser desfeita.')"
+                class="inline"
+            >
+                <button type="submit" class="btn btn-error">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                    </svg>
+                    Deletar
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Condições Ideais -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Condições Ideais</h2>
+                    {% if current_user.grupo.nivel_acesso >= 3 %}
+                    <a
+                        href="{{ url_for('admin_condicao_create') }}?cultura_id={{ cultura.id }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Adicionar
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if condicoes %}
+                <div class="space-y-4">
+                    {% for condicao in condicoes %}
+                    <div class="card bg-base-100 shadow-sm">
+                        <div class="card-body p-4">
+                            <div
+                                class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm"
+                            >
+                                <div>
+                                    <span class="font-semibold">
+                                        Temperatura:
+                                    </span>
+                                    <div class="text-primary">
+                                        {{ condicao.temperatura_min }}°C - {{
+                                        condicao.temperatura_max }}°C
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="font-semibold">
+                                        Umidade Ar:
+                                    </span>
+                                    <div class="text-secondary">
+                                        {{ condicao.umidade_ar_min }}% - {{
+                                        condicao.umidade_ar_max }}%
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="font-semibold">
+                                        Umidade Solo:
+                                    </span>
+                                    <div class="text-accent">
+                                        {{ condicao.umidade_solo_min }}% - {{
+                                        condicao.umidade_solo_max }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-base-content/60">
+                        Nenhuma condição ideal cadastrada
+                    </p>
+                    {% if current_user.grupo.nivel_acesso >= 3 %}
+                    <a
+                        href="{{ url_for('admin_condicao_create') }}?cultura_id={{ cultura.id }}"
+                        class="btn btn-primary btn-sm mt-2"
+                    >
+                        Cadastrar Primeira Condição
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sessões -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Sessões de Cultivo</h2>
+                    {% if current_user.grupo.nivel_acesso >= 4 %}
+                    <a
+                        href="{{ url_for('admin_sessao_create') }}?cultura_id={{ cultura.id }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Nova Sessão
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if sessoes %}
+                <div class="space-y-3">
+                    {% for sessao in sessoes %}
+                    <div class="card bg-base-100 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-semibold">
+                                        {{ sessao.nome }}
+                                    </h3>
+                                    <div class="text-sm text-base-content/60">
+                                        {{ sessao.dados_periodicos|length }}
+                                        registros de dados • {{
+                                        sessao.irrigacoes|length }} irrigações
+                                    </div>
+                                </div>
+                                <a
+                                    href="{{ url_for('admin_sessao_detail', id=sessao.id) }}"
+                                    class="btn btn-primary btn-xs"
+                                >
+                                    Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-base-content/60">
+                        Nenhuma sessão encontrada
+                    </p>
+                    {% if current_user.grupo.nivel_acesso >= 4 %}
+                    <a
+                        href="{{ url_for('admin_sessao_create') }}?cultura_id={{ cultura.id }}"
+                        class="btn btn-primary btn-sm mt-2"
+                    >
+                        Criar Primeira Sessão
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

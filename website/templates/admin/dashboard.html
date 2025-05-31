@@ -1,0 +1,259 @@
+{% extends "components/base.html" %} {% block title %}Dashboard Administrativo{%
+endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Dashboard Administrativo</h1>
+        <div class="badge badge-primary badge-lg">
+            Nível {{ nivel_usuario }}
+        </div>
+    </div>
+
+    <!-- Estatísticas Gerais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat bg-base-200 rounded-box">
+            <div class="stat-figure text-primary">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                    ></path>
+                </svg>
+            </div>
+            <div class="stat-title">Usuários</div>
+            <div class="stat-value text-primary">{{ stats.usuarios }}</div>
+        </div>
+
+        <div class="stat bg-base-200 rounded-box">
+            <div class="stat-figure text-secondary">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    ></path>
+                </svg>
+            </div>
+            <div class="stat-title">Culturas</div>
+            <div class="stat-value text-secondary">{{ stats.culturas }}</div>
+        </div>
+
+        <div class="stat bg-base-200 rounded-box">
+            <div class="stat-figure text-accent">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    ></path>
+                </svg>
+            </div>
+            <div class="stat-title">Sessões</div>
+            <div class="stat-value text-accent">{{ stats.sessoes }}</div>
+        </div>
+
+        <div class="stat bg-base-200 rounded-box">
+            <div class="stat-figure text-info">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                    ></path>
+                </svg>
+            </div>
+            <div class="stat-title">Fertilizantes</div>
+            <div class="stat-value text-info">{{ stats.fertilizantes }}</div>
+        </div>
+    </div>
+
+    <!-- Links Rápidos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Nível 2+ -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-primary">Visualização</h2>
+                <p>Acesso completo para visualização de dados</p>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_culturas_list') }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Culturas
+                    </a>
+                    <a
+                        href="{{ url_for('admin_sessoes_list') }}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Sessões
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nível 3+ -->
+        {% if nivel_usuario >= 3 %}
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-secondary">Gestão de Cultivo</h2>
+                <p>Gerenciar culturas, condições e fertilizantes</p>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_cultura_create') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Nova Cultura
+                    </a>
+                    <a
+                        href="{{ url_for('admin_condicao_create') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Nova Condição
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-secondary">Fertilizantes</h2>
+                <p>Gerenciar fertilizantes e unidades de medida</p>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_fertilizantes_list') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Fertilizantes
+                    </a>
+                    <a
+                        href="{{ url_for('admin_fertilizante_create') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Novo Fertilizante
+                    </a>
+                    <a
+                        href="{{ url_for('admin_unidades_list') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Unidades
+                    </a>
+                    <a
+                        href="{{ url_for('admin_unidade_create') }}"
+                        class="btn btn-secondary btn-sm"
+                    >
+                        Nova Unidade
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Nível 4+ -->
+        {% if nivel_usuario >= 4 %}
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-accent">Gestão de Sessões</h2>
+                <p>Criar e gerenciar sessões de cultivo</p>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_sessao_create') }}"
+                        class="btn btn-accent btn-sm"
+                    >
+                        Nova Sessão
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Nível 5+ -->
+        {% if nivel_usuario >= 5 %}
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-warning">Administração</h2>
+                <p>Gestão completa do sistema</p>
+                <div class="card-actions justify-end">
+                    <a
+                        href="{{ url_for('admin_usuarios_list') }}"
+                        class="btn btn-warning btn-sm"
+                    >
+                        Usuários
+                    </a>
+                    <a
+                        href="{{ url_for('admin_logs_list') }}"
+                        class="btn btn-warning btn-sm"
+                    >
+                        Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Atividade Recente -->
+    {% if logs_recentes %}
+    <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Atividade Recente</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs_recentes %}
+                        <tr>
+                            <td>
+                                {{ log.data_hora.strftime('%d/%m/%Y %H:%M') }}
+                            </td>
+                            <td>{{ log.usuario.nome }}</td>
+                            <td>{{ log.mensagem }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if nivel_usuario >= 5 %}
+            <div class="card-actions justify-end">
+                <a
+                    href="{{ url_for('admin_logs_list') }}"
+                    class="btn btn-primary"
+                >
+                    Ver Todos os Logs
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

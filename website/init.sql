@@ -146,7 +146,7 @@ VALUES (
     (SELECT id FROM grupo WHERE nome = 'Administrador Mestre'),
     'Administrador',
     'admin@siia.ifpb.edu.br',
-    '$argon2id$v=19$m=65536,t=3,p=4$Z1NUTVJLQmFGVzlYNGIwYVVzSm4wdw$RAl8cdAWcV83/STjJx3PoA'
+    '$argon2id$v=19$m=65536,t=3,p=4$NERNdkhTZXJNY2JLcHFlTw$n48jIzRp1ZDpca0gErLK9w'
 );
 
 -- A senha padrão é 'SIIA@AdminPassword' em argon2id
