@@ -2,6 +2,6 @@
 
 @plugin "daisyui" {
     themes:
-        [ "nord",
-        "night"];
+        nord --default,
+        night --prefersdark;
 }

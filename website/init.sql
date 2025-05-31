@@ -1,19 +1,7 @@
-DO $$ 
-DECLARE 
-    r RECORD;
-BEGIN
-    -- Para cada tabela no schema 'public'
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        -- Executa o comando de drop table
-        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
-    END LOOP;
-END $$;
-
 --* Estufa *--
 CREATE TABLE cultura (
     id SERIAL PRIMARY KEY,
-    nome TEXT NOT NULL,
-    trefle_id INTEGER NOT NULL
+    nome TEXT NOT NULL
 );
 
 CREATE TABLE sessao (
@@ -97,9 +85,10 @@ CREATE TABLE usuario (
     id SERIAL PRIMARY KEY,
     grupo_id INTEGER REFERENCES grupo(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
-    email TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     senha TEXT,
-    foto BYTEA
+    foto BYTEA,
+    token_recuperacao TEXT
 );
 
 CREATE TABLE log (
@@ -146,3 +135,18 @@ CREATE TABLE notificacao_usuario (
     notificacao_id INTEGER REFERENCES notificacao(id) ON DELETE CASCADE,
     usuario_id INTEGER REFERENCES usuario(id) ON DELETE CASCADE
 );
+
+--* Dados Iniciais *--
+-- Inserir grupo Administrador Mestre com nível de acesso 5
+INSERT INTO grupo (nome, nivel_acesso) VALUES ('Administrador Mestre', 5);
+
+-- Inserir usuário genérico com senha argon2id e atribuir ao grupo Administrador Mestre
+INSERT INTO usuario (grupo_id, nome, email, senha) 
+VALUES (
+    (SELECT id FROM grupo WHERE nome = 'Administrador Mestre'),
+    'Administrador',
+    'admin@siia.ifpb.edu.br',
+    '$argon2id$v=19$m=65536,t=3,p=4$Z1NUTVJLQmFGVzlYNGIwYVVzSm4wdw$RAl8cdAWcV83/STjJx3PoA'
+);
+
+-- A senha padrão é 'SIIA@AdminPassword' em argon2id

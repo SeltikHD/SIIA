@@ -13,7 +13,6 @@ class Cultura(db.Model):
     __tablename__ = 'cultura'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String, nullable=False)
-    trefle_id = db.Column(db.Integer, nullable=False)
     condicoes_ideais = db.relationship(
         'CondicaoIdeal', backref='cultura', lazy=True)
     sessoes = db.relationship('Sessao', backref='cultura', lazy=True)
@@ -133,6 +132,7 @@ class Usuario(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     senha = db.Column(db.String)
     foto = db.Column(db.LargeBinary)
+    token_recuperacao = db.Column(db.String)
     logs = db.relationship('Log', backref='usuario', lazy=True)
     tentativas_acesso = db.relationship(
         'TentativaAcesso', backref='usuario', lazy=True)
@@ -145,7 +145,9 @@ class Usuario(db.Model):
 
     @property
     def foto_base64(self):
-        return b64encode(self.foto).decode('utf-8')
+        if self.foto:
+            return b64encode(self.foto).decode('utf-8')
+        return None
 
     def get_id(self):
         return self.id

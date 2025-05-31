@@ -1,0 +1,68 @@
+{% extends "components/base.html" %} 
+{% block title %}Esqueci a Senha{% endblock title %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen">
+    <div class="card w-96 dark:bg-base-200 shadow-xl">
+        <div class="card-body">
+            <div class="card-title flex justify-center mb-6">
+                <h2 class="text-center">Recuperar Senha</h2>
+            </div>
+
+            {% include 'components/flash/error.html' %}
+            {% include 'components/flash/success.html' %}
+
+            <p class="text-center text-base-content/70 mb-6">
+                Digite seu email para receber as instruções de recuperação de senha.
+            </p>
+
+            <form action="{{ url_for('esqueci_senha') }}" method="post" class="space-y-4">
+                <label class="input input-bordered flex items-center gap-2">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        class="h-5 w-5 opacity-70"
+                    >
+                        <path
+                            d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z"
+                        />
+                        <path
+                            d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z"
+                        />
+                    </svg>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        class="input grow border-none focus:outline-none"
+                        placeholder="Digite seu email"
+                        required
+                    />
+                </label>
+
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary w-full">
+                        Enviar Instruções
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-6 space-y-2">
+                <p>
+                    Lembrou da senha?
+                    <a href="{{ url_for('login') }}" class="text-primary">
+                        Voltar ao Login
+                    </a>
+                </p>
+                <p>
+                    Não tem uma conta?
+                    <a href="{{ url_for('registrar') }}" class="text-primary">
+                        Registre-se aqui
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

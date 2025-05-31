@@ -1,19 +1,22 @@
-{% extends "components/base.html" %} {% block title %}Login{% endblock title %}
+{% extends "components/base.html" %} 
+{% block title %}Redefinir Senha{% endblock title %}
+
 {% block content %}
 <div class="flex items-center justify-center min-h-screen">
     <div class="card w-96 dark:bg-base-200 shadow-xl">
         <div class="card-body">
             <div class="card-title flex justify-center mb-6">
-                <h2 class="text-center">Login</h2>
+                <h2 class="text-center">Nova Senha</h2>
             </div>
 
             {% include 'components/flash/error.html' %}
+            {% include 'components/flash/success.html' %}
 
-            <form
-                action="{{ url_for('login') }}"
-                method="post"
-                class="space-y-4"
-            >
+            <p class="text-center text-base-content/70 mb-6">
+                Digite sua nova senha.
+            </p>
+
+            <form action="{{ url_for('redefinir_senha', token=token) }}" method="post" class="space-y-4">
                 <label class="input input-bordered flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -22,18 +25,18 @@
                         class="h-5 w-5 opacity-70"
                     >
                         <path
-                            d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z"
-                        />
-                        <path
-                            d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z"
+                            fill-rule="evenodd"
+                            d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
+                            clip-rule="evenodd"
                         />
                     </svg>
                     <input
-                        type="email"
-                        name="email"
-                        id="email"
+                        type="password"
+                        name="nova_senha"
+                        id="nova_senha"
                         class="input grow border-none focus:outline-none"
-                        placeholder="Email"
+                        placeholder="Nova senha"
+                        minlength="6"
                         required
                     />
                 </label>
@@ -53,53 +56,44 @@
                     </svg>
                     <input
                         type="password"
-                        name="password"
-                        id="password"
+                        name="confirmar_senha"
+                        id="confirmar_senha"
                         class="input grow border-none focus:outline-none"
-                        placeholder="Senha"
+                        placeholder="Confirme a nova senha"
+                        minlength="6"
                         required
                     />
                 </label>
 
                 <div class="form-control mt-6">
                     <button type="submit" class="btn btn-primary w-full">
-                        Login
+                        Redefinir Senha
                     </button>
-                </div>
-
-                <div class="form-control w-36">
-                    <label class="label cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked="checked"
-                            class="checkbox"
-                        />
-                        <span class="label-text">Lembrar de mim</span>
-                    </label>
                 </div>
             </form>
 
-            <button
-                onclick="googleLogin()"
-                class="btn btn-outline btn-primary w-full mt-4"
-            >
-                <i class="material-icons mr-2">login</i>
-                Login com Google
-            </button>
-
-            <p class="text-center mt-4">
-                Não tem uma conta?
-                <a href="{{ url_for('registrar') }}" class="text-primary">
-                    Registre-se aqui
-                </a>
-            </p>
-            
-            <p class="text-center mt-2">
-                <a href="{{ url_for('esqueci_senha') }}" class="text-primary text-sm">
-                    Esqueci minha senha
-                </a>
-            </p>
+            <div class="text-center mt-6">
+                <p>
+                    <a href="{{ url_for('login') }}" class="text-primary">
+                        Voltar ao Login
+                    </a>
+                </p>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Validação de confirmação de senha
+    document.getElementById('confirmar_senha').addEventListener('input', function() {
+        const senha = document.getElementById('nova_senha').value;
+        const confirmar = this.value;
+        
+        if (senha !== confirmar) {
+            this.setCustomValidity('As senhas não coincidem');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+</script>
 {% endblock content %}

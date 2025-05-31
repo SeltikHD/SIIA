@@ -1,16 +1,541 @@
-{% extends "components/base.html" %} {% block content %}
-<div class="container grid grid-cols-1 gap-4 p-4">
-    <div class="card shadow-lg">
-        <div class="card-body">
-            <h2 class="card-title">Perfil</h2>
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text text-primary">Nome</span>
-                </label>
-                <input type="text" value="{{ current_user.nome }}" disabled />
+{% extends "components/base.html" %} {% block title %}Perfil - {{
+current_user.nome }}{% endblock title %} {% block content %}
+<div class="bg-base-100 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-base-content mb-2">
+                Meu Perfil
+            </h1>
+            <p class="text-base-content/70">
+                Gerencie suas informações pessoais
+            </p>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Profile Card -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <!-- Profile Picture -->
+                        <div class="avatar mb-4">
+                            <div
+                                class="w-32 h-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
+                            >
+                                {% if current_user.foto %}
+                                <img
+                                    src="data:image/jpeg;base64,{{ current_user.foto_base64 }}"
+                                    alt="Foto de perfil de {{ current_user.nome }}"
+                                    class="w-32 h-32 rounded-full object-cover"
+                                />
+                                {% else %}
+                                <div
+                                    class="w-32 h-32 bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-content text-4xl font-bold rounded-full"
+                                >
+                                    {{ current_user.nome[0].upper() }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- User Name and Role -->
+                        <h2 class="card-title text-2xl">
+                            {{ current_user.nome }}
+                        </h2>
+                        <div class="badge badge-primary badge-lg mb-4">
+                            Usuário
+                        </div>
+
+                        <!-- Profile Stats -->
+                        <div class="stats stats-vertical shadow w-full">
+                            <div class="stat">
+                                <div class="stat-title text-xs">
+                                    ID do Usuário
+                                </div>
+                                <div class="stat-value text-lg">
+                                    #{{ current_user.id }}
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-title text-xs">Status</div>
+                                <div class="stat-value text-sm text-success">
+                                    Ativo
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="w-full mt-6 space-y-2">
+                            <button
+                                class="btn btn-primary btn-sm w-full flex items-center justify-center gap-2"
+                                onclick="editProfile()"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                </svg>
+                                Editar Perfil
+                            </button>
+                            <button
+                                class="btn btn-outline btn-error btn-sm w-full flex items-center justify-center gap-2"
+                                onclick="changePassword()"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                    />
+                                </svg>
+                                Alterar Senha
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Section -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Personal Information -->
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3
+                            class="card-title text-xl mb-6 flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                            </svg>
+                            Informações Pessoais
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        Nome Completo
+                                    </span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value="{{ current_user.nome }}"
+                                    class="input input-bordered bg-base-100"
+                                    disabled
+                                />
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        Email
+                                    </span>
+                                </label>
+                                <input
+                                    type="email"
+                                    value="{{ current_user.email }}"
+                                    class="input input-bordered bg-base-100"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Security -->
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3
+                            class="card-title text-xl mb-6 flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                />
+                            </svg>
+                            Segurança da Conta
+                        </h3>
+
+                        <div class="space-y-4">
+                            <div
+                                class="flex items-center justify-between p-4 bg-base-100 rounded-lg"
+                            >
+                                <div>
+                                    <h4 class="font-semibold">Senha</h4>
+                                    <p class="text-sm text-base-content/70">
+                                        {% if current_user.senha %} Senha
+                                        configurada {% else %} Login via Google
+                                        (sem senha local) {% endif %}
+                                    </p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    {% if current_user.senha %}
+                                    <div class="badge badge-success">
+                                        Configurada
+                                    </div>
+                                    {% else %}
+                                    <div class="badge badge-warning">
+                                        Google Auth
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal for Edit Profile -->
+<dialog id="edit_profile_modal" class="modal">
+    <div class="modal-box w-11/12 max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">Editar Perfil</h3>
+
+        <form
+            id="edit_profile_form"
+            enctype="multipart/form-data"
+            class="space-y-4"
+        >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nome -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">
+                            Nome Completo
+                        </span>
+                    </label>
+                    <input
+                        type="text"
+                        name="nome"
+                        id="edit_nome"
+                        value="{{ current_user.nome }}"
+                        class="input input-bordered"
+                        required
+                    />
+                </div>
+
+                <!-- Email -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Email</span>
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="edit_email"
+                        value="{{ current_user.email }}"
+                        class="input input-bordered"
+                        required
+                    />
+                </div>
+            </div>
+
+            <!-- Foto -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Foto de Perfil</span>
+                </label>
+                <input
+                    type="file"
+                    name="foto"
+                    id="edit_foto"
+                    accept="image/png,image/jpeg,image/jpg"
+                    class="file-input file-input-bordered"
+                />
+                <label class="label">
+                    <span class="label-text-alt">
+                        Formatos aceitos: PNG, JPG, JPEG (máximo 2MB)
+                    </span>
+                </label>
+            </div>
+
+            <!-- Preview da imagem -->
+            <div id="image_preview" class="hidden">
+                <label class="label">
+                    <span class="label-text font-semibold">Preview</span>
+                </label>
+                <div class="avatar">
+                    <div class="w-20 rounded-full">
+                        <img id="preview_img" src="" alt="Preview" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button
+                    type="button"
+                    class="btn btn-ghost"
+                    onclick="closeEditModal()"
+                >
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Modal for Change Password -->
+<dialog id="change_password_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Alterar Senha</h3>
+
+        {% if current_user.senha %}
+        <form id="change_password_form" class="space-y-4">
+            <!-- Senha Atual -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Senha Atual</span>
+                </label>
+                <input
+                    type="password"
+                    name="senha_atual"
+                    id="senha_atual"
+                    class="input input-bordered"
+                    required
+                />
+            </div>
+
+            <!-- Nova Senha -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Nova Senha</span>
+                </label>
+                <input
+                    type="password"
+                    name="nova_senha"
+                    id="nova_senha"
+                    class="input input-bordered"
+                    minlength="6"
+                    required
+                />
+                <label class="label">
+                    <span class="label-text-alt">Mínimo 6 caracteres</span>
+                </label>
+            </div>
+
+            <!-- Confirmar Nova Senha -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">
+                        Confirmar Nova Senha
+                    </span>
+                </label>
+                <input
+                    type="password"
+                    name="confirmar_senha"
+                    id="confirmar_nova_senha"
+                    class="input input-bordered"
+                    minlength="6"
+                    required
+                />
+            </div>
+
+            <div class="modal-action">
+                <button
+                    type="button"
+                    class="btn btn-ghost"
+                    onclick="closePasswordModal()"
+                >
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Alterar Senha
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-warning">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.88-.833-2.65 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+            </svg>
+            <span>
+                Este usuário foi criado via Google e não possui senha local.
+                Entre em contato com o administrador se precisar configurar uma
+                senha.
+            </span>
+        </div>
+        <div class="modal-action">
+            <button type="button" class="btn" onclick="closePasswordModal()">
+                Fechar
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</dialog>
+
+<script>
+    function editProfile() {
+        document.getElementById("edit_profile_modal").showModal();
+    }
+
+    function changePassword() {
+        document.getElementById("change_password_modal").showModal();
+    }
+
+    function closeEditModal() {
+        document.getElementById("edit_profile_modal").close();
+        document.getElementById("edit_profile_form").reset();
+        document.getElementById("image_preview").classList.add("hidden");
+    }
+
+    function closePasswordModal() {
+        document.getElementById("change_password_modal").close();
+        const form = document.getElementById("change_password_form");
+        if (form) {
+            form.reset();
+        }
+    }
+
+    // Preview da imagem
+    document
+        .getElementById("edit_foto")
+        .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Verifica tamanho (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("A imagem deve ter no máximo 2MB");
+                    this.value = "";
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById("preview_img").src =
+                        e.target.result;
+                    document
+                        .getElementById("image_preview")
+                        .classList.remove("hidden");
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document
+                    .getElementById("image_preview")
+                    .classList.add("hidden");
+            }
+        });
+
+    // Validação de confirmação de senha
+    document
+        .getElementById("confirmar_nova_senha")
+        .addEventListener("input", function () {
+            const senha = document.getElementById("nova_senha").value;
+            const confirmar = this.value;
+
+            if (senha !== confirmar) {
+                this.setCustomValidity("As senhas não coincidem");
+            } else {
+                this.setCustomValidity("");
+            }
+        });
+
+    // Submit do formulário de editar perfil
+    document
+        .getElementById("edit_profile_form")
+        .addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('{{ url_for("editar_perfil") }}', {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        // Sucesso - recarrega a página para mostrar as mudanças
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        // Erro
+                        alert(data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro:", error);
+                    alert("Erro de conexão. Tente novamente.");
+                });
+        });
+
+    // Submit do formulário de alterar senha
+    const changePasswordForm = document.getElementById("change_password_form");
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('{{ url_for("alterar_senha") }}', {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        alert(data.message);
+                        closePasswordModal();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro:", error);
+                    alert("Erro de conexão. Tente novamente.");
+                });
+        });
+    }
+</script>
 
 {% endblock content %}
