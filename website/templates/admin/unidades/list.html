@@ -1,6 +1,5 @@
-{% extends "components/base.html" %}
-{% block title %}Unidades de Medida - Administração{% endblock %}
-{% block content %}
+{% extends "components/base.html" %} {% block title %}Unidades de Medida -
+Administração{% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -16,8 +15,19 @@
         </div>
         {% if current_user.grupo.nivel_acesso >= 3 %}
         <a href="{{ url_for('admin_unidade_create') }}" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
             </svg>
             Nova Unidade
         </a>
@@ -30,15 +40,19 @@
         <div class="card bg-base-200 shadow-xl">
             <div class="card-body">
                 <h2 class="card-title">{{ unidade.nome }}</h2>
-                
+
                 <div class="stats shadow">
                     <div class="stat">
                         <div class="stat-title">Símbolo</div>
-                        <div class="stat-value text-sm">{{ unidade.simbolo }}</div>
+                        <div class="stat-value text-sm">
+                            {{ unidade.simbolo }}
+                        </div>
                     </div>
                     <div class="stat">
                         <div class="stat-title">Fertilizantes</div>
-                        <div class="stat-value text-sm">{{ unidade.fertilizantes|length }}</div>
+                        <div class="stat-value text-sm">
+                            {{ unidade.fertilizantes|length }}
+                        </div>
                     </div>
                 </div>
 
@@ -46,31 +60,58 @@
                 <div class="divider">Fertilizantes</div>
                 <div class="space-y-2">
                     {% for fertilizante in unidade.fertilizantes %}
-                    <div class="flex justify-between items-center bg-base-100 p-2 rounded">
+                    <div
+                        class="flex justify-between items-center bg-base-100 p-2 rounded"
+                    >
                         <span>{{ fertilizante.nome }}</span>
                     </div>
                     {% endfor %}
                 </div>
-                {% endif %}
-
-                {% if current_user.grupo.nivel_acesso >= 3 %}
+                {% endif %} {% if current_user.grupo.nivel_acesso >= 3 %}
                 <div class="card-actions justify-end mt-4">
-                    <a href="{{ url_for('admin_unidade_edit', id=unidade.id) }}" class="btn btn-secondary btn-sm">
+                    <a
+                        href="{{ url_for('admin_unidade_edit', id=unidade.id) }}"
+                        class="btn btn-secondary btn-sm"
+                    >
                         Editar
                     </a>
                     {% if unidade.fertilizantes|length == 0 %}
                     <div class="dropdown dropdown-end">
                         <label tabindex="0" class="btn btn-error btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
                             </svg>
                         </label>
-                        <div tabindex="0" class="dropdown-content card compact w-64 bg-base-100 shadow">
+                        <div
+                            tabindex="0"
+                            class="dropdown-content card compact w-64 bg-base-100 shadow"
+                        >
                             <div class="card-body">
-                                <p class="text-sm">Tem certeza que deseja deletar?</p>
+                                <p class="text-sm">
+                                    Tem certeza que deseja deletar?
+                                </p>
                                 <div class="card-actions">
-                                    <form method="POST" action="{{ url_for('admin_unidade_delete', id=unidade.id) }}">
-                                        <button type="submit" class="btn btn-error btn-sm">Deletar</button>
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('admin_unidade_delete', id=unidade.id) }}"
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="btn btn-error btn-sm"
+                                        >
+                                            Deletar
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -88,9 +129,14 @@
         <div class="hero-content text-center">
             <div class="max-w-md">
                 <h1 class="text-3xl font-bold">Nenhuma unidade encontrada</h1>
-                <p class="py-6">Não há unidades de medida cadastradas no sistema.</p>
+                <p class="py-6">
+                    Não há unidades de medida cadastradas no sistema.
+                </p>
                 {% if current_user.grupo.nivel_acesso >= 3 %}
-                <a href="{{ url_for('admin_unidade_create') }}" class="btn btn-primary">
+                <a
+                    href="{{ url_for('admin_unidade_create') }}"
+                    class="btn btn-primary"
+                >
                     Criar Primeira Unidade
                 </a>
                 {% endif %}
@@ -101,15 +147,23 @@
 
     <!-- Informação sobre acesso -->
     <div class="alert alert-info mt-8">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
         </svg>
         <span>
-            {% if current_user.grupo.nivel_acesso >= 3 %}
-            Você pode criar, editar e deletar unidades de medida.
-            {% else %}
-            Apenas visualização permitida. Nível 3 ou superior necessário para editar.
-            {% endif %}
+            {% if current_user.grupo.nivel_acesso >= 3 %} Você pode criar,
+            editar e deletar unidades de medida. {% else %} Apenas visualização
+            permitida. Nível 3 ou superior necessário para editar. {% endif %}
         </span>
     </div>
 </div>

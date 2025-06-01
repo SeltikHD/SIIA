@@ -1,15 +1,14 @@
-{% extends "components/base.html" %}
-
-{% block title %}Logs do Sistema - Administração{% endblock %}
-
-{% block content %}
+{% extends "components/base.html" %} {% block title %}Logs do Sistema -
+Administração{% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-bold">Logs do Sistema</h1>
             <div class="breadcrumbs text-sm">
                 <ul>
-                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
                     <li>Logs</li>
                 </ul>
             </div>
@@ -33,38 +32,57 @@
                         {% for log in logs.items %}
                         <tr>
                             <td class="font-mono text-sm">
-                                {{ log.data_hora.strftime('%d/%m/%Y') }}<br>
-                                <span class="text-base-content/60">{{ log.data_hora.strftime('%H:%M:%S') }}</span>
+                                {{ log.data_hora.strftime('%d/%m/%Y') }}
+                                <br />
+                                <span class="text-base-content/60">
+                                    {{ log.data_hora.strftime('%H:%M:%S') }}
+                                </span>
                             </td>
                             <td>
                                 <div class="flex items-center gap-2">
                                     {% if log.usuario.foto_base64 %}
                                     <div class="avatar">
                                         <div class="w-8 rounded-full">
-                                            <img src="data:image/jpeg;base64,{{ log.usuario.foto_base64 }}" alt="Foto do usuário" />
+                                            <img
+                                                src="data:image/jpeg;base64,{{ log.usuario.foto_base64 }}"
+                                                alt="Foto do usuário"
+                                            />
                                         </div>
                                     </div>
                                     {% else %}
                                     <div class="avatar placeholder">
-                                        <div class="bg-neutral-focus text-neutral-content rounded-full w-8">
-                                            <span class="text-xs">{{ log.usuario.nome[0].upper() }}</span>
+                                        <div
+                                            class="bg-neutral-focus text-neutral-content rounded-full w-8"
+                                        >
+                                            <span class="text-xs">
+                                                {{ log.usuario.nome[0].upper()
+                                                }}
+                                            </span>
                                         </div>
                                     </div>
                                     {% endif %}
                                     <div>
-                                        <div class="font-semibold">{{ log.usuario.nome }}</div>
-                                        <div class="text-xs text-base-content/60">{{ log.usuario.grupo.nome }}</div>
+                                        <div class="font-semibold">
+                                            {{ log.usuario.nome }}
+                                        </div>
+                                        <div
+                                            class="text-xs text-base-content/60"
+                                        >
+                                            {{ log.usuario.grupo.nome }}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 <div class="max-w-md">
                                     {% if log.mensagem.startswith('ADMIN:') %}
-                                    <div class="badge badge-primary badge-sm">ADMIN</div>
-                                    <span class="ml-2">{{ log.mensagem[6:] }}</span>
-                                    {% else %}
-                                    {{ log.mensagem }}
-                                    {% endif %}
+                                    <div class="badge badge-primary badge-sm">
+                                        ADMIN
+                                    </div>
+                                    <span class="ml-2">
+                                        {{ log.mensagem[6:] }}
+                                    </span>
+                                    {% else %} {{ log.mensagem }} {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -76,32 +94,42 @@
             <!-- Paginação -->
             <div class="flex justify-between items-center mt-6">
                 <div class="text-sm text-base-content/60">
-                    Mostrando {{ (logs.page - 1) * logs.per_page + 1 }} até 
-                    {{ (logs.page - 1) * logs.per_page + logs.items|length }} de 
-                    {{ logs.total }} registros
+                    Mostrando {{ (logs.page - 1) * logs.per_page + 1 }} até {{
+                    (logs.page - 1) * logs.per_page + logs.items|length }} de {{
+                    logs.total }} registros
                 </div>
-                
+
                 <div class="join">
                     {% if logs.has_prev %}
-                    <a href="{{ url_for('admin_logs_list', page=logs.prev_num) }}" class="join-item btn">«</a>
+                    <a
+                        href="{{ url_for('admin_logs_list', page=logs.prev_num) }}"
+                        class="join-item btn"
+                    >
+                        «
+                    </a>
                     {% else %}
                     <button class="join-item btn btn-disabled">«</button>
-                    {% endif %}
-                    
-                    {% for page_num in logs.iter_pages() %}
-                        {% if page_num %}
-                            {% if page_num != logs.page %}
-                            <a href="{{ url_for('admin_logs_list', page=page_num) }}" class="join-item btn">{{ page_num }}</a>
-                            {% else %}
-                            <button class="join-item btn btn-active">{{ page_num }}</button>
-                            {% endif %}
-                        {% else %}
-                        <button class="join-item btn btn-disabled">…</button>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if logs.has_next %}
-                    <a href="{{ url_for('admin_logs_list', page=logs.next_num) }}" class="join-item btn">»</a>
+                    {% endif %} {% for page_num in logs.iter_pages() %} {% if
+                    page_num %} {% if page_num != logs.page %}
+                    <a
+                        href="{{ url_for('admin_logs_list', page=page_num) }}"
+                        class="join-item btn"
+                    >
+                        {{ page_num }}
+                    </a>
+                    {% else %}
+                    <button class="join-item btn btn-active">
+                        {{ page_num }}
+                    </button>
+                    {% endif %} {% else %}
+                    <button class="join-item btn btn-disabled">…</button>
+                    {% endif %} {% endfor %} {% if logs.has_next %}
+                    <a
+                        href="{{ url_for('admin_logs_list', page=logs.next_num) }}"
+                        class="join-item btn"
+                    >
+                        »
+                    </a>
                     {% else %}
                     <button class="join-item btn btn-disabled">»</button>
                     {% endif %}
@@ -122,12 +150,23 @@
 
     <!-- Informações sobre logs -->
     <div class="alert alert-info mt-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
         </svg>
         <span>
-            Os logs registram todas as ações administrativas realizadas no sistema. 
-            Logs marcados com "ADMIN" são ações realizadas através do painel administrativo.
+            Os logs registram todas as ações administrativas realizadas no
+            sistema. Logs marcados com "ADMIN" são ações realizadas através do
+            painel administrativo.
         </span>
     </div>
 </div>

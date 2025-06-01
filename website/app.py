@@ -2,7 +2,7 @@ import base64
 import os
 import secrets
 import smtplib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
@@ -23,12 +23,13 @@ from lib.models import (
     Log,
     Sessao,
     SessaoIrrigacao,
+    SessaoUsuario,
     TentativaAcesso,
     UnidadeMedida,
     Usuario,
     db,
 )
-from lib.mqtt import MQTTClient
+# from lib.mqtt import MQTTClient  # Comentado temporariamente para teste mobile
 
 ph = PasswordHasher()
 
@@ -1150,6 +1151,365 @@ def admin_logs_list():
     logs = Log.query.order_by(Log.data_hora.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template("admin/logs/list.html", logs=logs)
+
+
+# ===== API ENDPOINTS MÓVEIS =====
+
+@app.route("/api/mobile/login", methods=["POST"])
+def api_mobile_login():
+    """Endpoint de login para aplicativo móvel"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "Dados não fornecidos"}), 400
+            
+        email = data.get("email", "").strip()
+        senha = data.get("password", "") or data.get("senha", "")  # Aceita ambos os campos
+        
+        if not email or not senha:
+            return jsonify({"success": False, "message": "Email e senha são obrigatórios"}), 400
+            
+        # Busca o usuário pelo email
+        usuario = Usuario.query.filter_by(email=email).first()
+        
+        if not usuario or not usuario.senha:
+            return jsonify({"success": False, "message": "Credenciais inválidas"}), 401
+            
+        # Verifica a senha
+        try:
+            if ph.verify(usuario.senha, senha):
+                # Gera token de sessão para mobile
+                token = secrets.token_urlsafe(32)
+                
+                # Cria ou atualiza sessão móvel
+                sessao_mobile = SessaoUsuario.query.filter_by(usuario_id=usuario.id).first()
+                if sessao_mobile:
+                    sessao_mobile.token = token
+                    sessao_mobile.data_criacao = datetime.now()
+                    sessao_mobile.data_expiracao = datetime.now() + timedelta(days=7)
+                else:
+                    sessao_mobile = SessaoUsuario(
+                        token=token,
+                        usuario_id=usuario.id,
+                        data_expiracao=datetime.now() + timedelta(days=7)
+                    )
+                    db.session.add(sessao_mobile)
+                
+                db.session.commit()
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Login realizado com sucesso",
+                    "token": token,
+                    "usuario": {
+                        "id": usuario.id,
+                        "nome": usuario.nome,
+                        "email": usuario.email,
+                        "grupo": {
+                            "id": usuario.grupo.id,
+                            "nome": usuario.grupo.nome,
+                            "nivel_acesso": usuario.grupo.nivel_acesso
+                        } if usuario.grupo else None,
+                        "foto_base64": usuario.foto_base64
+                    }
+                }), 200
+            else:
+                return jsonify({"success": False, "message": "Credenciais inválidas"}), 401
+                
+        except exceptions.VerifyMismatchError:
+            return jsonify({"success": False, "message": "Credenciais inválidas"}), 401
+            
+    except Exception as e:
+        print(f"Erro no login móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/logout", methods=["POST"])
+def api_mobile_logout():
+    """Endpoint de logout para aplicativo móvel"""
+    try:
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        
+        if token:
+            # Remove a sessão móvel
+            sessao_mobile = SessaoUsuario.query.filter_by(token=token).first()
+            if sessao_mobile:
+                db.session.delete(sessao_mobile)
+                db.session.commit()
+        
+        return jsonify({"success": True, "message": "Logout realizado com sucesso"}), 200
+        
+    except Exception as e:
+        print(f"Erro no logout móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/dashboard", methods=["GET"])
+def api_mobile_dashboard():
+    """Endpoint de dados do dashboard para aplicativo móvel"""
+    try:
+        # Verifica autenticação
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            return jsonify({"success": False, "message": "Token não fornecido"}), 401
+            
+        sessao_mobile = SessaoUsuario.query.filter_by(token=token).first()
+        if not sessao_mobile or sessao_mobile.data_expiracao < datetime.now():
+            return jsonify({"success": False, "message": "Token inválido ou expirado"}), 401
+            
+        # Busca dados das sessões
+        sessoes_info = []
+        sessoes = Sessao.query.all()
+        
+        for sessao_cultivo in sessoes:
+            # Último dado periódico da sessão
+            ultimo_dado = DadoPeriodico.query.filter_by(
+                sessao_id=sessao_cultivo.id
+            ).order_by(DadoPeriodico.data_hora.desc()).first()
+            
+            # Verifica a cultura associada
+            cultura = Cultura.query.get(sessao_cultivo.cultura_id)
+            
+            # Verifica se a sessão está sendo irrigada
+            irrigacao = SessaoIrrigacao.query.filter_by(
+                sessao_id=sessao_cultivo.id
+            ).order_by(SessaoIrrigacao.data_inicio.desc()).first()
+            esta_irrigando = irrigacao.status if irrigacao else False
+            
+            # Cálculo de tempo de cultivo
+            tempo_cultivo = None
+            if irrigacao and irrigacao.data_inicio:
+                tempo_cultivo = (datetime.now() - irrigacao.data_inicio).days
+            
+            # Prepara a imagem em base64
+            imagem_base64 = None
+            if ultimo_dado and ultimo_dado.imagem:
+                imagem_base64 = base64.b64encode(ultimo_dado.imagem).decode("utf-8")
+            
+            sessoes_info.append({
+                "id": sessao_cultivo.id,
+                "nome": sessao_cultivo.nome,
+                "cultura": {
+                    "id": cultura.id if cultura else None,
+                    "nome": cultura.nome if cultura else "Sem cultura"
+                },
+                "tempo_cultivo": tempo_cultivo,
+                "ocupada": bool(cultura),
+                "esta_irrigando": esta_irrigando,
+                "dados": {
+                    "temperatura": ultimo_dado.temperatura if ultimo_dado else None,
+                    "umidade_ar": ultimo_dado.umidade_ar if ultimo_dado else None,
+                    "umidade_solo": ultimo_dado.umidade_solo if ultimo_dado else None,
+                    "data_hora": ultimo_dado.data_hora.isoformat() if ultimo_dado else None
+                },
+                "imagem_base64": imagem_base64
+            })
+        
+        return jsonify({
+            "success": True,
+            "data": sessoes_info  # Mudado de "sessoes" para "data" para compatibilidade com mobile
+        }), 200
+        
+    except Exception as e:
+        print(f"Erro no dashboard móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/culturas", methods=["GET"])
+def api_mobile_culturas():
+    """Endpoint de culturas para aplicativo móvel"""
+    try:
+        # Verifica autenticação
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            return jsonify({"success": False, "message": "Token não fornecido"}), 401
+            
+        sessao_mobile = SessaoUsuario.query.filter_by(token=token).first()
+        if not sessao_mobile or sessao_mobile.data_expiracao < datetime.now():
+            return jsonify({"success": False, "message": "Token inválido ou expirado"}), 401
+            
+        # Busca culturas
+        culturas = Cultura.query.all()
+        culturas_data = []
+        
+        for cultura in culturas:
+            culturas_data.append({
+                "id": cultura.id,
+                "nome": cultura.nome,
+                "temperatura_ideal": "20-25°C",
+                "umidade_ideal": "60-80%",
+                "ph_ideal": "6.0-7.0"
+            })
+        
+        return jsonify({
+            "success": True,
+            "culturas": culturas_data
+        }), 200
+        
+    except Exception as e:
+        print(f"Erro nas culturas móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/usuarios", methods=["GET"])
+def api_mobile_usuarios():
+    """Endpoint de usuários para aplicativo móvel (admin apenas)"""
+    try:
+        # Verifica autenticação
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            return jsonify({"success": False, "message": "Token não fornecido"}), 401
+            
+        sessao_mobile = SessaoUsuario.query.filter_by(token=token).first()
+        if not sessao_mobile or sessao_mobile.data_expiracao < datetime.now():
+            return jsonify({"success": False, "message": "Token inválido ou expirado"}), 401
+            
+        # Verifica se é admin (nível 2+ pode ver usuários)
+        usuario = Usuario.query.get(sessao_mobile.usuario_id)
+        if not usuario or not usuario.grupo or usuario.grupo.nivel_acesso < 2:
+            return jsonify({"success": False, "message": "Acesso negado - Necessário nível de administrador"}), 403
+            
+        # Busca usuários
+        usuarios = Usuario.query.all()
+        usuarios_data = []
+        
+        for user in usuarios:
+            usuarios_data.append({
+                "id": user.id,
+                "nome": user.nome,
+                "email": user.email,
+                "grupo": {
+                    "id": user.grupo.id if user.grupo else None,
+                    "nome": user.grupo.nome if user.grupo else None,
+                    "nivel_acesso": user.grupo.nivel_acesso if user.grupo else None
+                },
+                "foto_base64": user.foto_base64,
+                "tem_senha": bool(user.senha)
+            })
+        
+        return jsonify({
+            "success": True,
+            "usuarios": usuarios_data
+        }), 200
+        
+    except Exception as e:
+        print(f"Erro nos usuários móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/register", methods=["POST"])
+def api_mobile_register():
+    """Endpoint de registro para aplicativo móvel"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "Dados não fornecidos"}), 400
+            
+        nome = data.get("nome", "").strip()
+        email = data.get("email", "").strip()
+        senha = data.get("password", "") or data.get("senha", "")  # Aceita ambos os campos
+        
+        if not nome or not email or not senha:
+            return jsonify({
+                "success": False, 
+                "message": "Nome, email e senha são obrigatórios"
+            }), 400
+            
+        if len(senha) < 6:
+            return jsonify({
+                "success": False, 
+                "message": "A senha deve ter pelo menos 6 caracteres"
+            }), 400
+            
+        # Verifica se email já existe
+        if Usuario.query.filter_by(email=email).first():
+            return jsonify({
+                "success": False, 
+                "message": "Este email já está sendo usado"
+            }), 409
+            
+        # Busca grupo padrão (nível 1)
+        grupo_padrao = Grupo.query.filter_by(nivel_acesso=1).first()
+        if not grupo_padrao:
+            return jsonify({
+                "success": False, 
+                "message": "Erro de configuração do sistema"
+            }), 500
+            
+        # Cria novo usuário
+        novo_usuario = Usuario(
+            nome=nome,
+            email=email,
+            senha=ph.hash(senha),
+            grupo_id=grupo_padrao.id
+        )
+        
+        db.session.add(novo_usuario)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Usuário criado com sucesso",
+            "usuario": {
+                "id": novo_usuario.id,
+                "nome": novo_usuario.nome,
+                "email": novo_usuario.email
+            }
+        }), 201
+        
+    except Exception as e:
+        print(f"Erro no registro móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
+
+
+@app.route("/api/mobile/perfil", methods=["GET"])
+def api_mobile_perfil():
+    """Endpoint de perfil para aplicativo móvel (usuário logado)"""
+    try:
+        # Verifica autenticação
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            return jsonify({"success": False, "message": "Token não fornecido"}), 401
+            
+        sessao_mobile = SessaoUsuario.query.filter_by(token=token).first()
+        if not sessao_mobile or sessao_mobile.data_expiracao < datetime.now():
+            return jsonify({"success": False, "message": "Token inválido ou expirado"}), 401
+            
+        # Busca dados do usuário logado
+        usuario = Usuario.query.get(sessao_mobile.usuario_id)
+        if not usuario:
+            return jsonify({"success": False, "message": "Usuário não encontrado"}), 404
+            
+        # Estatísticas do sistema para o usuário
+        stats = {
+            "total_culturas": Cultura.query.count(),
+            "total_usuarios": Usuario.query.count(),
+            "total_sessoes": Sessao.query.count(),
+        }
+        
+        # Dados do usuário
+        usuario_data = {
+            "id": usuario.id,
+            "nome": usuario.nome,
+            "email": usuario.email,
+            "grupo": {
+                "id": usuario.grupo.id if usuario.grupo else None,
+                "nome": usuario.grupo.nome if usuario.grupo else None,
+                "nivel_acesso": usuario.grupo.nivel_acesso if usuario.grupo else None
+            },
+            "foto_base64": usuario.foto_base64,
+            "data_criacao": usuario.data_criacao.isoformat() if hasattr(usuario, 'data_criacao') and usuario.data_criacao else None
+        }
+        
+        return jsonify({
+            "success": True,
+            "usuario": usuario_data,
+            "estatisticas": stats
+        }), 200
+        
+    except Exception as e:
+        print(f"Erro no perfil móvel: {e}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"}), 500
 
 
 if __name__ == "__main__":

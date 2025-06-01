@@ -1,6 +1,5 @@
-{% extends "components/base.html" %}
-{% block title %}Editar Unidade de Medida - Administração{% endblock %}
-{% block content %}
+{% extends "components/base.html" %} {% block title %}Editar Unidade de Medida -
+Administração{% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -11,15 +10,31 @@
                         <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
                     </li>
                     <li>
-                        <a href="{{ url_for('admin_unidades_list') }}">Unidades de Medida</a>
+                        <a href="{{ url_for('admin_unidades_list') }}">
+                            Unidades de Medida
+                        </a>
                     </li>
                     <li>Editar {{ unidade.nome }}</li>
                 </ul>
             </div>
         </div>
-        <a href="{{ url_for('admin_unidades_list') }}" class="btn btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        <a
+            href="{{ url_for('admin_unidades_list') }}"
+            class="btn btn-secondary"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
             </svg>
             Voltar
         </a>
@@ -29,63 +44,103 @@
         <div class="card bg-base-200 shadow-xl">
             <div class="card-body">
                 <h2 class="card-title mb-6">Informações da Unidade</h2>
-                
-                <form method="POST" action="{{ url_for('admin_unidade_edit', id=unidade.id) }}" class="space-y-6">
+
+                <form
+                    method="POST"
+                    action="{{ url_for('admin_unidade_edit', id=unidade.id) }}"
+                    class="space-y-6"
+                >
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text font-medium">Nome da Unidade *</span>
+                            <span class="label-text font-medium">
+                                Nome da Unidade *
+                            </span>
                         </label>
-                        <input 
-                            type="text" 
-                            name="nome" 
-                            class="input input-bordered w-full" 
+                        <input
+                            type="text"
+                            name="nome"
+                            class="input input-bordered w-full"
                             placeholder="Ex: Quilograma, Litro, Metros Cúbicos..."
                             value="{{ unidade.nome }}"
                             required
                             maxlength="100"
-                        >
+                        />
                         <label class="label">
-                            <span class="label-text-alt">Nome completo da unidade de medida</span>
+                            <span class="label-text-alt">
+                                Nome completo da unidade de medida
+                            </span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text font-medium">Símbolo *</span>
+                            <span class="label-text font-medium">
+                                Símbolo *
+                            </span>
                         </label>
-                        <input 
-                            type="text" 
-                            name="simbolo" 
-                            class="input input-bordered w-full" 
+                        <input
+                            type="text"
+                            name="simbolo"
+                            class="input input-bordered w-full"
                             placeholder="Ex: kg, L, m³..."
                             value="{{ unidade.simbolo }}"
                             required
                             maxlength="10"
-                        >
+                        />
                         <label class="label">
-                            <span class="label-text-alt">Símbolo ou abreviação da unidade</span>
+                            <span class="label-text-alt">
+                                Símbolo ou abreviação da unidade
+                            </span>
                         </label>
                     </div>
 
                     {% if unidade.fertilizantes %}
                     <div class="alert alert-warning">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="stroke-current shrink-0 h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            ></path>
                         </svg>
                         <div>
                             <h3 class="font-bold">Atenção!</h3>
-                            <p class="text-sm">Esta unidade está sendo usada por {{ unidade.fertilizantes|length }} fertilizante(s). Alterar pode afetar os dados existentes.</p>
+                            <p class="text-sm">
+                                Esta unidade está sendo usada por {{
+                                unidade.fertilizantes|length }} fertilizante(s).
+                                Alterar pode afetar os dados existentes.
+                            </p>
                         </div>
                     </div>
                     {% endif %}
 
                     <div class="card-actions justify-end pt-4">
-                        <a href="{{ url_for('admin_unidades_list') }}" class="btn btn-ghost">
+                        <a
+                            href="{{ url_for('admin_unidades_list') }}"
+                            class="btn btn-ghost"
+                        >
                             Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                />
                             </svg>
                             Salvar Alterações
                         </button>
@@ -98,12 +153,19 @@
         {% if unidade.fertilizantes %}
         <div class="card bg-base-100 shadow-xl mt-6">
             <div class="card-body">
-                <h3 class="card-title text-lg">Fertilizantes que usam esta unidade</h3>
+                <h3 class="card-title text-lg">
+                    Fertilizantes que usam esta unidade
+                </h3>
                 <div class="grid grid-cols-1 gap-2">
                     {% for fertilizante in unidade.fertilizantes %}
-                    <div class="flex justify-between items-center bg-base-200 p-3 rounded">
+                    <div
+                        class="flex justify-between items-center bg-base-200 p-3 rounded"
+                    >
                         <span class="font-medium">{{ fertilizante.nome }}</span>
-                        <a href="{{ url_for('admin_fertilizante_edit', id=fertilizante.id) }}" class="btn btn-xs btn-secondary">
+                        <a
+                            href="{{ url_for('admin_fertilizante_edit', id=fertilizante.id) }}"
+                            class="btn btn-xs btn-secondary"
+                        >
                             Ver Fertilizante
                         </a>
                     </div>
@@ -120,11 +182,15 @@
                 <div class="stats shadow">
                     <div class="stat">
                         <div class="stat-title">Nome</div>
-                        <div class="stat-value text-sm" id="preview-nome">{{ unidade.nome }}</div>
+                        <div class="stat-value text-sm" id="preview-nome">
+                            {{ unidade.nome }}
+                        </div>
                     </div>
                     <div class="stat">
                         <div class="stat-title">Símbolo</div>
-                        <div class="stat-value text-sm" id="preview-simbolo">{{ unidade.simbolo }}</div>
+                        <div class="stat-value text-sm" id="preview-simbolo">
+                            {{ unidade.simbolo }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,12 +200,18 @@
 
 <script>
     // Preview em tempo real
-    document.querySelector('input[name="nome"]').addEventListener('input', function(e) {
-        document.getElementById('preview-nome').textContent = e.target.value || '-';
-    });
-    
-    document.querySelector('input[name="simbolo"]').addEventListener('input', function(e) {
-        document.getElementById('preview-simbolo').textContent = e.target.value || '-';
-    });
+    document
+        .querySelector('input[name="nome"]')
+        .addEventListener("input", function (e) {
+            document.getElementById("preview-nome").textContent =
+                e.target.value || "-";
+        });
+
+    document
+        .querySelector('input[name="simbolo"]')
+        .addEventListener("input", function (e) {
+            document.getElementById("preview-simbolo").textContent =
+                e.target.value || "-";
+        });
 </script>
 {% endblock %}
