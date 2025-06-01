@@ -1,0 +1,189 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sia2-fertilizer-management"
+version = "1.0.0"
+description = "Sistema Inteligente de Adubação - Fertilizer Management System"
+authors = [{ name = "SIA2 Team", email = "sia2@example.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Agriculture",
+]
+keywords = ["agriculture", "fertilizer", "iot", "flask", "management"]
+
+dependencies = [
+    "Flask",
+    "Flask-SQLAlchemy",
+    "flask-login",
+    "psycopg2-binary",
+    "scikit-learn",
+    "matplotlib",
+    "opencv-python-headless",
+    "python-dotenv",
+    "paho-mqtt",
+    "argon2-cffi",
+    "firebase-admin",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.0",
+    "pytest-flask",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-env",
+    "pytest-html",
+    "pytest-xdist",
+    "factory-boy",
+    "freezegun",
+    "responses",
+    "Faker",
+    "pytest-postgresql",
+    "httpretty",
+    "pytest-benchmark",
+]
+dev = [
+    "flake8",
+    "black",
+    "isort",
+    "bandit",
+    "safety",
+    "mypy",
+    "pylint",
+    "pre-commit",
+]
+
+[project.urls]
+Homepage = "https://github.com/sia2-team/sia2-fertilizer-management"
+Repository = "https://github.com/sia2-team/sia2-fertilizer-management"
+Documentation = "https://sia2-docs.example.com"
+Issues = "https://github.com/sia2-team/sia2-fertilizer-management/issues"
+
+[project.scripts]
+sia2 = "app:main"
+
+[tool.setuptools]
+packages = ["lib"]
+
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.css", "*.js", "*.json", "*.sql"]
+
+# Configuração do Black
+[tool.black]
+line-length = 127
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # Padrões de exclusão
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | node_modules
+  | migrations
+)/
+'''
+
+# Configuração do isort
+[tool.isort]
+profile = "black"
+line_length = 127
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+known_first_party = ["lib", "app"]
+known_third_party = ["flask", "sqlalchemy", "pytest"]
+
+# Configuração do MyPy
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# Configuração do Coverage
+[tool.coverage.run]
+source = ["lib", "app.py"]
+omit = ["tests/*", ".venv/*", "*/migrations/*", "conftest.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Configuração do Pylint
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "import-error",
+    "no-member",
+]
+
+[tool.pylint.format]
+max-line-length = 127
+
+# Configuração do Pytest
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --tb=short --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests",
+    "auth: marks tests as authentication tests",
+    "admin: marks tests as admin functionality tests",
+    "slow: marks tests as slow running",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

@@ -1,0 +1,254 @@
+name: SIA2 - Testes e CI/CD
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+env:
+    TESTING: 1
+    SECRET_KEY: "test-secret-key-for-ci-only"
+    DATABASE_URL: "sqlite:///:memory:"
+    FLASK_ENV: "testing"
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: [3.9, 3.10, 3.11]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            - name: Cache pip dependencies
+              uses: actions/cache@v3
+              with:
+                  path: ~/.cache/pip
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install -r requirements-test.txt
+
+            - name: Lint with flake8 (critical errors)
+              run: |
+                  # Para falhas críticas, pare a execução
+                  flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+            - name: Lint with flake8 (all checks)
+              run: |
+                  # Para todos os checks, continue mas reporte
+                  flake8 . --count --exit-zero --statistics
+
+            - name: Format check with black
+              run: |
+                  black --check --diff .
+
+            - name: Import sorting check with isort
+              run: |
+                  isort --check-only --diff .
+
+            - name: Run unit tests
+              run: |
+                  pytest tests/test_models.py -v --cov=lib/models --cov-report=xml
+
+            - name: Run authentication tests
+              run: |
+                  pytest tests/test_auth.py -v --cov=app --cov-append --cov-report=xml
+
+            - name: Run admin routes tests
+              run: |
+                  pytest tests/test_admin_routes_fixed.py -v --cov=app --cov-append --cov-report=xml
+
+            - name: Run integration tests
+              run: |
+                  pytest tests/test_integration.py -v --cov=app --cov-append --cov-report=xml
+
+            - name: Generate final coverage report
+              run: |
+                  pytest --cov=. --cov-report=html --cov-report=xml --cov-fail-under=75
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v3
+              with:
+                  file: ./coverage.xml
+                  flags: unittests
+                  name: codecov-umbrella
+                  fail_ci_if_error: false
+
+            - name: Archive test results
+              uses: actions/upload-artifact@v3
+              if: always()
+              with:
+                  name: test-results-${{ matrix.python-version }}
+                  path: |
+                      htmlcov/
+                      reports/
+                      coverage.xml
+
+    security:
+        runs-on: ubuntu-latest
+        needs: test
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.11
+
+            - name: Install security scanning tools
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install bandit safety
+
+            - name: Run Bandit security scan
+              run: |
+                  bandit -r . -f json -o bandit-report.json -x tests/ || true
+                  bandit -r . -f txt -x tests/
+
+            - name: Run Safety dependency check
+              run: |
+                  safety check --json --output safety-report.json || true
+                  safety check
+
+            - name: Upload security reports
+              uses: actions/upload-artifact@v3
+              if: always()
+              with:
+                  name: security-reports
+                  path: |
+                      bandit-report.json
+                      safety-report.json
+
+    quality:
+        runs-on: ubuntu-latest
+        needs: test
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.11
+
+            - name: Install quality tools
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install -r requirements-test.txt
+                  pip install mypy pylint
+
+            - name: Run MyPy type checking
+              run: |
+                  mypy . --ignore-missing-imports --no-strict-optional --config-file=pyproject.toml || true
+
+            - name: Run Pylint
+              run: |
+                  pylint app.py lib/ --output-format=json --rcfile=pyproject.toml > pylint-report.json || true
+                  pylint app.py lib/ --output-format=text --rcfile=pyproject.toml || true
+
+            - name: Upload quality reports
+              uses: actions/upload-artifact@v3
+              if: always()
+              with:
+                  name: quality-reports
+                  path: |
+                      pylint-report.json
+
+    build:
+        runs-on: ubuntu-latest
+        needs: [test, security, quality]
+        if: github.ref == 'refs/heads/main'
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.11
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+
+            - name: Create distribution
+              run: |
+                  python -m pip install build
+                  python -m build
+
+            - name: Archive build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: dist
+                  path: dist/
+
+    deploy-staging:
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.ref == 'refs/heads/develop'
+        environment: staging
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Deploy to staging
+              run: |
+                  echo "🚀 Deploying to staging environment..."
+                  echo "✅ Staging deployment simulated successfully"
+                  # TODO: Adicionar comandos específicos de deploy para staging
+                  # Exemplo: heroku deploy, AWS deployment, etc.
+
+    deploy-production:
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.ref == 'refs/heads/main'
+        environment: production
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Deploy to production
+              run: |
+                  echo "🚀 Deploying to production environment..."
+                  echo "✅ Production deployment simulated successfully"
+                  # TODO: Adicionar comandos específicos de deploy para produção
+                  # Exemplo: docker deployment, kubernetes, cloud provider, etc.
+
+    notification:
+        runs-on: ubuntu-latest
+        needs: [test, security, quality]
+        if: always()
+
+        steps:
+            - name: Notify success
+              if: ${{ needs.test.result == 'success' && needs.security.result == 'success' && needs.quality.result == 'success' }}
+              run: |
+                  echo "✅ Pipeline executado com sucesso!"
+                  # Adicionar notificação (Slack, Discord, email, etc.)
+
+            - name: Notify failure
+              if: ${{ needs.test.result == 'failure' || needs.security.result == 'failure' || needs.quality.result == 'failure' }}
+              run: |
+                  echo "❌ Pipeline falhou!"
+                  # Adicionar notificação de falha
+
+# Configurações específicas para diferentes branches
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true

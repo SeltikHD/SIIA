@@ -1,0 +1,151 @@
+# Pre-commit configuration for SIA2 project
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+    # Black - Code formatter
+    - repo: https://github.com/psf/black
+      rev: 23.11.0
+      hooks:
+          - id: black
+            language_version: python3.11
+            args: [--line-length=127]
+
+    # isort - Import sorter
+    - repo: https://github.com/pycqa/isort
+      rev: 5.12.0
+      hooks:
+          - id: isort
+            args: [--profile=black, --line-length=127]
+
+    # flake8 - Linting
+    - repo: https://github.com/pycqa/flake8
+      rev: 6.1.0
+      hooks:
+          - id: flake8
+            args: [--max-line-length=127, --extend-ignore=E203, W503]
+
+    # Bandit - Security linting
+    - repo: https://github.com/pycqa/bandit
+      rev: 1.7.5
+      hooks:
+          - id: bandit
+            args: [-r, ., -f, txt]
+            exclude: ^tests/
+
+    # Basic file checks
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.5.0
+      hooks:
+          # Python-specific
+          - id: check-ast
+          - id: check-docstring-first
+          - id: debug-statements
+          - id: name-tests-test
+
+          # General file checks
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: check-yaml
+          - id: check-json
+          - id: check-merge-conflict
+          - id: check-added-large-files
+          - id: check-case-conflict
+
+          # Security
+          - id: detect-private-key
+
+    # Safety - Dependency vulnerability check
+    - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+      rev: v1.3.2
+      hooks:
+          - id: python-safety-dependencies-check
+
+    # MyPy - Type checking
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v1.7.1
+      hooks:
+          - id: mypy
+            additional_dependencies: [types-all]
+            args: [--ignore-missing-imports, --no-strict-optional]
+
+    # Pytest - Run fast tests
+    - repo: local
+      hooks:
+          - id: pytest-fast
+            name: pytest-fast
+            entry: pytest
+            language: system
+            args: [-m, "unit", --tb=short, --no-cov, -q]
+            pass_filenames: false
+            types: [python]
+
+    # Custom hooks for Flask/SIA2 specific checks
+    - repo: local
+      hooks:
+          # Check for debug prints
+          - id: check-debug-prints
+            name: check-debug-prints
+            entry: grep
+            language: system
+            args:
+                [
+                    -n,
+                    -E,
+                    "(print\\(|pprint|pp\\(|pdb\\.set_trace|debugger|console\\.log)",
+                ]
+            types: [python]
+            exclude: ^tests/
+
+          # Check for TODO/FIXME comments
+          - id: check-todos
+            name: check-todos
+            entry: grep
+            language: system
+            args: [-n, -E, "(TODO|FIXME|XXX|HACK)"]
+            types: [python]
+            exclude: ^tests/
+
+          # Check for hardcoded secrets
+          - id: check-secrets
+            name: check-secrets
+            entry: grep
+            language: system
+            args:
+                [
+                    -n,
+                    -E,
+                    "(password|secret|key|token)\\s*=\\s*['\"][^'\"]*['\"]",
+                ]
+            types: [python]
+            exclude: ^tests/
+
+          # Check Flask app configuration
+          - id: check-flask-config
+            name: check-flask-config
+            entry: python
+            language: system
+            args: [-c, "import app; print('✅ Flask app configuration OK')"]
+            pass_filenames: false
+            types: [python]
+
+# Configuration
+fail_fast: false
+default_language_version:
+    python: python3.11
+
+# Exclude patterns
+exclude: |
+    (?x)^(
+      migrations/|
+      htmlcov/|
+      .coverage|
+      \.git/|
+      __pycache__/|
+      \.pytest_cache/|
+      \.venv/|
+      venv/|
+      env/|
+      build/|
+      dist/|
+      \.egg-info/
+    )$

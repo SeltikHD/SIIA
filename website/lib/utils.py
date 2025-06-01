@@ -1,12 +1,15 @@
-#* Função para executar crons tasks
+# * Função para executar crons tasks
 import asyncio
 import time
-from croniter import croniter
 from datetime import datetime
+
+from croniter import croniter
+
 
 async def execute_task(func):
     """Executa uma função assincronamente."""
     await func()
+
 
 def schedule_task(cron_expression, func):
     """Agenda a execução da função com base na expressão CRON."""
@@ -32,10 +35,13 @@ def schedule_task(cron_expression, func):
     # Inicia a execução assincrona
     asyncio.create_task(runner())
 
+
 # Exemplo de uso
+
 
 async def minha_funcao():
     print(f"Executando função em {datetime.now()}")
+
 
 # Exemplo de expressão CRON: "*/1 * * * *" (executa a cada minuto)
 cron_expression = "*/1 * * * *"

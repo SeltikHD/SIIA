@@ -1,0 +1,33 @@
+# Dependências para testes
+pytest==8.3.5
+pytest-flask==1.3.0
+pytest-cov==6.1.1
+pytest-mock==3.12.0
+pytest-env==1.1.1
+pytest-html==4.1.1
+pytest-xdist==3.5.0
+factory-boy==3.3.0
+freezegun==1.2.2
+responses==0.25.7
+Faker==37.3.0
+
+# Para testes de integração com banco
+pytest-postgresql==7.0.2
+
+# Para mocking de requests HTTP
+httpretty==1.1.4
+
+# Para testes de performance
+pytest-benchmark==5.1.0
+
+# Para linting e formatação nos testes
+flake8==7.2.0
+black==25.1.0
+isort==6.0.1
+
+# Dependências de segurança
+bandit==1.8.0
+safety==3.5.1
+
+# Para verificação de tipos
+mypy==1.13.0

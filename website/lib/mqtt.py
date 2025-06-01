@@ -1,11 +1,13 @@
-from lib.models import DadoPeriodico, Notificacao, Sessao
-from app import db
-from flask import current_app as app
-from os import getenv
-import paho.mqtt.client as mqtt
+import json
 import logging
 import uuid
-import json
+from os import getenv
+
+import paho.mqtt.client as mqtt
+from flask import current_app as app
+
+from app import db
+from lib.models import DadoPeriodico, Notificacao, Sessao
 
 # Configurações do Broker MQTT
 MQTT_BROKER = getenv("MQTT_URL")
@@ -23,14 +25,10 @@ MQTT_TOPICS = {
 
 class MQTTClient:
     def __init__(self):
-        self.mqtt_client = mqtt.Client(
-            protocol=mqtt.MQTTv5, client_id=f"FlaskClient-{uuid.uuid4()}", userdata=None
-        )
+        self.mqtt_client = mqtt.Client(protocol=mqtt.MQTTv5, client_id=f"FlaskClient-{uuid.uuid4()}", userdata=None)
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.tls_set(tls_version=mqtt.ssl.PROTOCOL_TLS)
-        self.mqtt_client.username_pw_set(
-            getenv("MQTT_USERNAME"), getenv("MQTT_PASSWORD")
-        )
+        self.mqtt_client.username_pw_set(getenv("MQTT_USERNAME"), getenv("MQTT_PASSWORD"))
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.on_disconnect = self.on_disconnect
 
@@ -71,9 +69,7 @@ class MQTTClient:
     # Callback para mensagens recebidas
     def on_message(self, _client, _userdata, msg, _properties=None):
         try:
-            logging.info(
-                f"Mensagem recebida no tópico {msg.topic}: {msg.payload.decode()}"
-            )
+            logging.info(f"Mensagem recebida no tópico {msg.topic}: {msg.payload.decode()}")
             self.process_message(msg.topic, msg.payload.decode())
         except Exception as e:
             logging.error(f"Erro ao processar mensagem do tópico {msg.topic}: {e}")
@@ -81,9 +77,7 @@ class MQTTClient:
     # Callback para desconexão
     def on_disconnect(self, _client, _userdata, rc, _properties=None):
         if rc != 0:
-            logging.warning(
-                f"Conexão perdida com o Broker MQTT. Código de retorno: {rc}. Tentando reconectar..."
-            )
+            logging.warning(f"Conexão perdida com o Broker MQTT. Código de retorno: {rc}. Tentando reconectar...")
             try:
                 self.mqtt_client.reconnect()
             except Exception as e:
@@ -102,9 +96,7 @@ class MQTTClient:
                 elif topic == MQTT_TOPICS["umidade_ar"]:
                     self.salvar_dado_periodico(data, tipo="umidade_ar")
                 elif topic.startswith("estufa/umidade/solo/"):
-                    self.salvar_dado_periodico(
-                        data, tipo="umidade_solo", sessao_id=topic.split("/")[-1]
-                    )
+                    self.salvar_dado_periodico(data, tipo="umidade_solo", sessao_id=topic.split("/")[-1])
                 elif topic == MQTT_TOPICS["camera"]:
                     self.processar_imagem(data)
                 elif topic == MQTT_TOPICS["alerta"]:
@@ -115,9 +107,7 @@ class MQTTClient:
             logging.error(f"Erro ao processar mensagem: {e}")
 
     def salvar_dado_periodico(self, data, tipo, sessao_id=None):
-        sessao = (
-            Sessao.query.filter_by(id=int(sessao_id)).first() if sessao_id else None
-        )
+        sessao = Sessao.query.filter_by(id=int(sessao_id)).first() if sessao_id else None
         if sessao or tipo in ["temperatura", "umidade_ar"]:
             try:
                 novo_dado = DadoPeriodico(
