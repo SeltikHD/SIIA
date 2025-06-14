@@ -1,0 +1,32 @@
+# Dockerfile para aplicação móvel Kivy
+FROM python:3.10-slim
+
+# Instala dependências do sistema para Kivy
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    pkg-config \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Define diretório de trabalho
+WORKDIR /app
+
+# Copia arquivos de dependências
+COPY requirements.txt .
+
+# Instala dependências Python
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copia código da aplicação
+COPY . .
+
+# Comando padrão (modo desenvolvimento)
+CMD ["python", "main_app.py"]

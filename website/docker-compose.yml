@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: sia2_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-siia}
+      POSTGRES_USER: ${DB_USER:-lopinhos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-senha123}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./model.sql:/docker-entrypoint-initdb.d/02-model.sql:ro
+    networks:
+      - sia2_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lopinhos} -d ${DB_NAME:-siia}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Serviço para compilar Tailwind CSS
+  tailwind:
+    image: node:18-alpine
+    container_name: sia2_tailwind
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run build"
+    networks:
+      - sia2_network
+    depends_on:
+      - postgres
+
+  # Aplicação Flask (Website)
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: sia2_web
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-lopinhos}:${DB_PASSWORD:-senha123}@postgres:5432/${DB_NAME:-siia}
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin@siia.ifpb.edu.br}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-SIIA@AdminPassword}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SITE_URL=${SITE_URL:-http://localhost:5000}
+      - TREFLE_API_KEY=${TREFLE_API_KEY}
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - FLASK_DEBUG=1
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.venv
+    networks:
+      - sia2_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tailwind:
+        condition: service_completed_successfully
+    command: >
+      sh -c "
+      python -m venv .venv && 
+      source .venv/bin/activate && 
+      pip install --upgrade pip && 
+      pip install -r requirements.txt && 
+      python app.py
+      "
+
+  # Aplicação Mobile (para desenvolvimento)
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile.mobile
+    container_name: sia2_mobile
+    environment:
+      - SIA2_API_URL=http://web:5000
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - ./mobile:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /app/.venv
+    networks:
+      - sia2_network
+    depends_on:
+      - web
+    profiles:
+      - mobile
+    command: >
+      sh -c "
+      python -m venv .venv && 
+      source .venv/bin/activate && 
+      pip install --upgrade pip && 
+      pip install -r requirements.txt && 
+      echo 'Mobile app ready. Run: docker compose exec mobile python main_app.py'
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  sia2_network:
+    driver: bridge

@@ -1,22 +1,23 @@
-# Makefile para Sistema SIA2
-# Facilita execução de testes, linting, e outras tarefas de desenvolvimento
+# Makefile para projeto SIA2 - Docker
+.PHONY: help setup validate start stop clean logs shell db-init db-clean mobile
 
-.PHONY: help install install-dev test test-unit test-integration test-auth test-admin test-coverage clean lint format security check-all run-dev setup-db
-
-# Variáveis
-PYTHON := python3
-PIP := pip3
-PYTEST := pytest
-COVERAGE := coverage
-BLACK := black
-ISORT := isort
-FLAKE8 := flake8
-BANDIT := bandit
-SAFETY := safety
-
-# Ajuda - comando padrão
+# Comando padrão
 help:
-	@echo "🚀 Sistema SIA2 - Comandos Disponíveis"
+	@echo "🚀 SIA2 - Sistema de Automação de Estufa"
+	@echo ""
+	@echo "Comandos disponíveis:"
+	@echo "  make setup      - Configuração inicial completa"
+	@echo "  make validate   - Validar configuração"
+	@echo "  make start      - Iniciar projeto (web + banco)"
+	@echo "  make mobile     - Iniciar com app móvel"
+	@echo "  make stop       - Parar todos os serviços"
+	@echo "  make restart    - Parar e iniciar novamente"
+	@echo "  make logs       - Ver logs em tempo real"
+	@echo "  make shell      - Shell na aplicação web"
+	@echo "  make db-init    - Inicializar banco de dados"
+	@echo "  make db-clean   - Limpar dados do banco"
+	@echo "  make clean      - Limpeza completa"
+	@echo "  make status     - Status dos containers"
 	@echo ""
 	@echo "📦 INSTALAÇÃO:"
 	@echo "  install          - Instala dependências básicas"
@@ -44,6 +45,113 @@ help:
 	@echo "🧹 LIMPEZA:"
 	@echo "  clean            - Remove arquivos temporários"
 	@echo "  clean-all        - Limpeza completa"
+
+# Setup inicial
+setup:
+	@echo "🔧 Executando setup inicial..."
+	@chmod +x setup.sh db-init.sh db-rm.sh validate.sh
+	@./setup.sh
+
+# Validação
+validate:
+	@echo "🔍 Validando configuração..."
+	@chmod +x validate.sh
+	@./validate.sh
+
+# Iniciar projeto
+start:
+	@echo "🚀 Iniciando projeto SIA2..."
+	@docker compose up -d
+	@echo "✅ Projeto iniciado!"
+	@echo "🌐 Acesse: http://localhost:5000"
+
+# Iniciar com móvel
+mobile:
+	@echo "📱 Iniciando projeto com app móvel..."
+	@docker compose --profile mobile up -d
+	@echo "✅ Projeto iniciado com app móvel!"
+	@echo "🌐 Web: http://localhost:5000"
+	@echo "📱 Mobile: make mobile-run"
+
+# Executar app móvel
+mobile-run:
+	@echo "📱 Executando app móvel..."
+	@docker compose exec mobile python main_app.py
+
+# Parar serviços
+stop:
+	@echo "🛑 Parando serviços..."
+	@docker compose down
+
+# Reiniciar
+restart: stop start
+
+# Ver logs
+logs:
+	@echo "📊 Logs em tempo real (Ctrl+C para sair)..."
+	@docker compose logs -f
+
+# Shell na aplicação
+shell:
+	@echo "🐚 Abrindo shell na aplicação web..."
+	@docker compose exec web bash
+
+# Shell no banco
+db-shell:
+	@echo "🗄️ Abrindo shell no PostgreSQL..."
+	@docker compose exec postgres psql -U lopinhos -d siia
+
+# Inicializar banco
+db-init:
+	@echo "🗄️ Inicializando banco de dados..."
+	@chmod +x db-init.sh
+	@./db-init.sh
+
+# Limpar banco
+db-clean:
+	@echo "🧹 Limpando dados do banco..."
+	@docker compose down -v
+	@docker volume rm sia2_postgres_data 2>/dev/null || true
+
+# Status
+status:
+	@echo "📊 Status dos containers:"
+	@docker compose ps
+	@echo ""
+	@echo "💾 Volumes:"
+	@docker compose config --volumes
+
+# Limpeza completa
+clean:
+	@echo "🧹 Limpeza completa..."
+	@chmod +x db-rm.sh
+	@./db-rm.sh
+
+# Rebuild
+rebuild:
+	@echo "🔨 Reconstruindo imagens..."
+	@docker compose build --no-cache
+
+# Desenvolvimento
+dev:
+	@echo "🔧 Modo desenvolvimento..."
+	@docker compose -f docker-compose.yml up -d
+
+# Testes
+test-web:
+	@echo "🧪 Executando testes web..."
+	@docker compose exec web python -m pytest
+
+test-mobile:
+	@echo "📱 Executando testes móvel..."
+	@docker compose exec mobile python test_integration.py
+
+# Backup banco
+backup:
+	@echo "💾 Fazendo backup do banco..."
+	@mkdir -p backups
+	@docker compose exec postgres pg_dump -U lopinhos siia > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "✅ Backup salvo em backups/"
 
 # Instalação
 install:
