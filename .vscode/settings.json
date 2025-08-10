@@ -27,6 +27,6 @@
 		"pytest.ini": ".pytest_cache, .coverage, .benchmarks, debug-test.sh, run-test.sh",
 		"Makefile": "*.mk, up.sh, setup.sh, validate.sh, db-init.sh, db-rm.sh",
 		".gitignore": ".gitattributes, .gitkeep",
-		"init.sql": "model.sql"
+		"init.sql": "model.sql",
 	}
 }
