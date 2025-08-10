@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script para remover containers e volumes do projeto SIA2
-echo "=== LIMPEZA DO PROJETO SIA2 ==="
+# Script para remover containers e volumes do projeto SIIA
+echo "=== LIMPEZA DO PROJETO SIIA ==="
 
 # Verifica se o Docker está rodando
 if ! docker info >/dev/null 2>&1; then
@@ -23,7 +23,7 @@ echo "🗑️  Removendo volumes do banco de dados..."
 docker compose down -v
 
 # Remove volumes nomeados
-docker volume rm sia2_postgres_data 2>/dev/null && echo "✅ Volume sia2_postgres_data removido" || echo "ℹ️  Volume sia2_postgres_data não encontrado"
+docker volume rm siia_postgres_data 2>/dev/null && echo "✅ Volume siia_postgres_data removido" || echo "ℹ️  Volume siia_postgres_data não encontrado"
 
 # Opção para limpeza completa
 read -p "Deseja também remover imagens Docker criadas para o projeto? [s/N]: " REMOVE_IMAGES
@@ -51,7 +51,7 @@ if [[ $DEEP_CLEAN =~ ^[Ss]$ ]]; then
 fi
 
 echo ""
-echo "🎉 Limpeza do projeto SIA2 concluída!"
+echo "🎉 Limpeza do projeto SIIA concluída!"
 echo ""
 echo "📋 Para reiniciar o projeto:"
 echo "   ./db-init.sh  # Inicializar banco"

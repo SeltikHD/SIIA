@@ -2,27 +2,23 @@
 FROM python:3.10-slim
 
 # Instala dependências do sistema
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ make \
     libpq-dev \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgomp1 \
+    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender1 libgomp1 \
+    curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Define diretório de trabalho
 WORKDIR /app
 
 # Copia arquivos de dependências
-COPY requirements.txt .
+COPY requirements.txt requirements-test.txt ./
 
 # Instala dependências Python
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-test.txt
 
 # Copia código da aplicação
 COPY . .
@@ -33,5 +29,5 @@ RUN mkdir -p logs
 # Expõe porta
 EXPOSE 5000
 
-# Comando padrão
+# Comando padrão - roda diretamente sem venv
 CMD ["python", "app.py"]

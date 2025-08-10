@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de validação do setup Docker para SIA2
-echo "🔍 === VALIDAÇÃO DO SETUP SIA2 ==="
+# Script de validação do setup Docker para SIIA
+echo "🔍 === VALIDAÇÃO DO SETUP SIIA ==="
 
 # Cores para output
 RED='\033[0;31m'

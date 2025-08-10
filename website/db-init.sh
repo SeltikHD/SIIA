@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script para inicializar o banco PostgreSQL com Docker
-echo "=== INICIALIZAÇÃO DO BANCO SIA2 ==="
+echo "=== INICIALIZAÇÃO DO BANCO SIIA ==="
 
 # Verifica se o Docker está rodando
 if ! docker info >/dev/null 2>&1; then
@@ -89,17 +89,17 @@ export DB_NAME DB_USER DB_PASSWORD
 
 # Inicia apenas o PostgreSQL
 echo "🚀 Iniciando PostgreSQL..."
-docker compose up -d postgres
+docker compose up -d db
 
 # Aguarda o banco ficar pronto
 echo "⏳ Aguardando PostgreSQL ficar disponível..."
 timeout=60
-while ! docker compose exec postgres pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
+while ! docker compose exec db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
     sleep 2
     timeout=$((timeout - 2))
     if [ $timeout -le 0 ]; then
         echo "❌ Timeout: PostgreSQL não ficou disponível em 60 segundos."
-        docker compose logs postgres
+    docker compose logs db
         exit 1
     fi
 done
@@ -109,7 +109,7 @@ echo "✅ PostgreSQL está pronto!"
 # Se dados de exemplo não foram carregados automaticamente, oferece opção manual
 if [[ $LOAD_SAMPLE_DATA =~ ^[Ss]$ ]] && [ -f "./model.sql" ]; then
     echo "📊 Carregando dados de exemplo..."
-    docker compose exec postgres psql -U "$DB_USER" -d "$DB_NAME" -f /docker-entrypoint-initdb.d/02-model.sql
+    docker compose exec db psql -U "$DB_USER" -d "$DB_NAME" -f /docker-entrypoint-initdb.d/02-model.sql
     echo "✅ Dados de exemplo carregados!"
 fi
 

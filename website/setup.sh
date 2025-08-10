@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de configuração inicial do projeto SIA2
-echo "🚀 === SETUP INICIAL DO PROJETO SIA2 ==="
+# Script de configuração inicial do projeto SIIA
+echo "🚀 === SETUP INICIAL DO PROJETO SIIA ==="
 
 # Função para gerar secret key
 generate_secret_key() {
@@ -103,7 +103,7 @@ DB_PASSWORD=${DB_PASSWORD}
 SECRET_KEY=${SECRET_KEY}
 
 # API Key Trefle (opcional)
-TREFLE_API_KEY=VGT5KTyQ6O0E59qbYGqucYao61AzAJm6yMuB9oN9zUI
+TREFLE_API_KEY=YOUR_TREFLE_API_KEY
 
 # Credenciais do usuário admin
 ADMIN_USERNAME=admin@siia.ifpb.edu.br

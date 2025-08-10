@@ -1,6 +1,6 @@
-# SIA2 - Setup com Docker
+# SIIA - Setup com Docker
 
-Este guia explica como configurar e executar o projeto SIA2 usando Docker.
+Este guia explica como configurar e executar o projeto SIIA usando Docker.
 
 ## 🚀 Início Rápido
 

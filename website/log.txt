@@ -1,0 +1,304 @@
+git clone https://github.com/SeltikHD/SIIA
+Cloning into 'SIIA'...
+remote: Enumerating objects: 421, done.
+remote: Counting objects: 100% (421/421), done.
+remote: Compressing objects: 100% (225/225), done.
+remote: Total 421 (delta 165), reused 394 (delta 138), pack-reused 0 (from 0)
+Receiving objects: 100% (421/421), 998.57 KiB | 3.52 MiB/s, done.
+Resolving deltas: 100% (165/165), done.
+cd SIIA/website
+Python virtualenv project detected. Run mkvenv to setup autoswitching
+sha1sum: 'Python '$'\033''[35mvirtualenv'$'\033''[0m project detected. Run '$'\033''[35mmkvenv'$'\033''[0m to setup autoswitching': Arquivo ou diretório inexistente
+grep: [, [^, [:, [. ou [= sem correspondente
+grep: [, [^, [:, [. ou [= sem correspondente
+[autoenv] New or modified env file detected
+--- Contents of "Python virtualenv project detected. Run mkvenv to setup autoswitching" ------------------------------------------------------------------------------------------------------------------------------
+cat: 'Python '$'\033''[35mvirtualenv'$'\033''[0m project detected. Run '$'\033''[35mmkvenv'$'\033''[0m to setup autoswitching': Arquivo ou diretório inexistente
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[autoenv] Authorize this file? (y/n/d) y
+grep: [, [^, [:, [. ou [= sem correspondente
+sha1sum: 'Python '$'\033''[35mvirtualenv'$'\033''[0m project detected. Run '$'\033''[35mmkvenv'$'\033''[0m to setup autoswitching': Arquivo ou diretório inexistente
+autoenv_source:.:8: arquivo ou diretório inexistente: Python ^[[35mvirtualenv^[[0m project detected. Run ^[[35mmkvenv^[[0m to setup autoswitching
+chmod +x setup.sh
+./setup.sh
+🚀 === SETUP INICIAL DO PROJETO SIA2 ===
+🐳 Verificando Docker...
+✅ Docker está disponível
+✅ Node.js está disponível (v22.15.0)
+
+📝 === CONFIGURAÇÃO DO AMBIENTE ===
+🔧 Configurando arquivo .env...
+📋 Base copiada de .env.example
+
+🔐 === CONFIGURAÇÃO DO BANCO DE DADOS ===
+Nome do banco [siia]: 
+Usuário do banco [lopinhos]: 
+Senha do banco [senha123]: 
+🔑 Gerando chave secreta...
+
+📧 === CONFIGURAÇÃO DE EMAIL (opcional) ===
+Servidor SMTP [smtp.gmail.com]: 
+Porta SMTP [587]: 
+Email para recuperação de senha (opcional): SMTP_USERNAME=recuperacao.siia@gmail.com
+Senha do email (ou app password): 
+clear
+ls
+app.py       db-init.sh  debug-test.sh       Dockerfile.web  DOCKER_README.md  lib       model.sql     postcss.config.js  pytest.ini  requirements-test.txt  run-test.sh  static              templates   tests        yarn.lock
+conftest.py  db-rm.sh    docker-compose.yml  DOCKER.md       init.sql          Makefile  package.json  pyproject.toml     README.md   requirements.txt       setup.sh     tailwind.config.js  TESTING.md  validate.sh
+ls -lsha
+total 300K
+4,0K drwxrwxr-x 7 veveto veveto 4,0K jun 14 12:48 .
+4,0K drwxrwxr-x 6 veveto veveto 4,0K jun 14 12:47 ..
+ 56K -rwxrwxr-x 1 veveto veveto  56K jun 14 12:47 app.py
+8,0K -rwxrwxr-x 1 veveto veveto 5,3K jun 14 12:47 conftest.py
+4,0K -rwxrwxr-x 1 veveto veveto 4,0K jun 14 12:47 db-init.sh
+4,0K -rwxrwxr-x 1 veveto veveto 1,9K jun 14 12:47 db-rm.sh
+4,0K -rwxrwxr-x 1 veveto veveto 2,3K jun 14 12:47 debug-test.sh
+4,0K -rwxrwxr-x 1 veveto veveto 3,0K jun 14 12:47 docker-compose.yml
+4,0K -rwxrwxr-x 1 veveto veveto  721 jun 14 12:47 Dockerfile.web
+4,0K -rwxrwxr-x 1 veveto veveto  657 jun 14 12:47 .dockerignore
+8,0K -rwxrwxr-x 1 veveto veveto 5,6K jun 14 12:47 DOCKER.md
+8,0K -rwxrwxr-x 1 veveto veveto 7,8K jun 14 12:47 DOCKER_README.md
+4,0K -rwxrwxr-x 1 veveto veveto  314 jun 14 12:48 .env
+4,0K -rwxrwxr-x 1 veveto veveto  314 jun 14 12:47 .env.example
+4,0K -rwxrwxr-x 1 veveto veveto  520 jun 14 12:47 .flake8
+4,0K drwxrwxr-x 3 veveto veveto 4,0K jun 14 12:47 .github
+4,0K -rwxrwxr-x 1 veveto veveto 1,2K jun 14 12:47 .gitignore
+8,0K -rwxrwxr-x 1 veveto veveto 4,4K jun 14 12:47 init.sql
+4,0K drwxrwxr-x 2 veveto veveto 4,0K jun 14 12:47 lib
+ 12K -rwxrwxr-x 1 veveto veveto 8,8K jun 14 12:47 Makefile
+ 12K -rwxrwxr-x 1 veveto veveto  11K jun 14 12:47 model.sql
+4,0K -rwxrwxr-x 1 veveto veveto  555 jun 14 12:47 package.json
+4,0K -rwxrwxr-x 1 veveto veveto   86 jun 14 12:47 postcss.config.js
+4,0K -rwxrwxr-x 1 veveto veveto 3,9K jun 14 12:47 .pre-commit-config.yaml
+4,0K -rwxrwxr-x 1 veveto veveto   24 jun 14 12:47 .prettierignore
+4,0K -rwxrwxr-x 1 veveto veveto  121 jun 14 12:47 .prettierrc
+8,0K -rwxrwxr-x 1 veveto veveto 4,3K jun 14 12:47 pyproject.toml
+4,0K -rwxrwxr-x 1 veveto veveto  285 jun 14 12:47 pytest.ini
+4,0K -rwxrwxr-x 1 veveto veveto 2,2K jun 14 12:47 README.md
+4,0K -rwxrwxr-x 1 veveto veveto  581 jun 14 12:47 requirements-test.txt
+4,0K -rwxrwxr-x 1 veveto veveto  149 jun 14 12:47 requirements.txt
+ 12K -rwxrwxr-x 1 veveto veveto 8,9K jun 14 12:47 run-test.sh
+8,0K -rwxrwxr-x 1 veveto veveto 5,7K jun 14 12:47 setup.sh
+4,0K drwxrwxr-x 4 veveto veveto 4,0K jun 14 12:47 static
+4,0K -rwxrwxr-x 1 veveto veveto  170 jun 14 12:47 tailwind.config.js
+4,0K drwxrwxr-x 4 veveto veveto 4,0K jun 14 12:47 templates
+ 12K -rwxrwxr-x 1 veveto veveto  11K jun 14 12:47 TESTING.md
+4,0K drwxrwxr-x 2 veveto veveto 4,0K jun 14 12:47 tests
+8,0K -rwxrwxr-x 1 veveto veveto 7,1K jun 14 12:47 validate.sh
+ 32K -rwxrwxr-x 1 veveto veveto  31K jun 14 12:47 yarn.lock
+rm .env
+clear
+./setup.sh
+🚀 === SETUP INICIAL DO PROJETO SIA2 ===
+🐳 Verificando Docker...
+✅ Docker está disponível
+✅ Node.js está disponível (v22.15.0)
+
+📝 === CONFIGURAÇÃO DO AMBIENTE ===
+🔧 Configurando arquivo .env...
+📋 Base copiada de .env.example
+
+🔐 === CONFIGURAÇÃO DO BANCO DE DADOS ===
+Nome do banco [siia]: 
+Usuário do banco [lopinhos]: 
+Senha do banco [senha123]: 
+🔑 Gerando chave secreta...
+
+📧 === CONFIGURAÇÃO DE EMAIL (opcional) ===
+Servidor SMTP [smtp.gmail.co]: 
+Porta SMTP [587]: 
+Email para recuperação de senha (opcional): SMTP_USERNAME=recuperacao.siia@gmail.com
+Senha do email (ou app password): 
+clear
+ls
+app.py       db-init.sh  debug-test.sh       Dockerfile.web  DOCKER_README.md  lib       model.sql     postcss.config.js  pytest.ini  requirements-test.txt  run-test.sh  static              templates   tests        yarn.lock
+conftest.py  db-rm.sh    docker-compose.yml  DOCKER.md       init.sql          Makefile  package.json  pyproject.toml     README.md   requirements.txt       setup.sh     tailwind.config.js  TESTING.md  validate.sh
+ls -lsha
+total 300K
+4,0K drwxrwxr-x 7 veveto veveto 4,0K jun 14 12:48 .
+4,0K drwxrwxr-x 6 veveto veveto 4,0K jun 14 12:47 ..
+ 56K -rwxrwxr-x 1 veveto veveto  56K jun 14 12:47 app.py
+8,0K -rwxrwxr-x 1 veveto veveto 5,3K jun 14 12:47 conftest.py
+4,0K -rwxrwxr-x 1 veveto veveto 4,0K jun 14 12:47 db-init.sh
+4,0K -rwxrwxr-x 1 veveto veveto 1,9K jun 14 12:47 db-rm.sh
+4,0K -rwxrwxr-x 1 veveto veveto 2,3K jun 14 12:47 debug-test.sh
+4,0K -rwxrwxr-x 1 veveto veveto 3,0K jun 14 12:47 docker-compose.yml
+4,0K -rwxrwxr-x 1 veveto veveto  721 jun 14 12:47 Dockerfile.web
+4,0K -rwxrwxr-x 1 veveto veveto  657 jun 14 12:47 .dockerignore
+8,0K -rwxrwxr-x 1 veveto veveto 5,6K jun 14 12:47 DOCKER.md
+8,0K -rwxrwxr-x 1 veveto veveto 7,8K jun 14 12:47 DOCKER_README.md
+4,0K -rwxrwxr-x 1 veveto veveto  314 jun 14 12:48 .env
+4,0K -rwxrwxr-x 1 veveto veveto  314 jun 14 12:47 .env.example
+4,0K -rwxrwxr-x 1 veveto veveto  520 jun 14 12:47 .flake8
+4,0K drwxrwxr-x 3 veveto veveto 4,0K jun 14 12:47 .github
+4,0K -rwxrwxr-x 1 veveto veveto 1,2K jun 14 12:47 .gitignore
+8,0K -rwxrwxr-x 1 veveto veveto 4,4K jun 14 12:47 init.sql
+4,0K drwxrwxr-x 2 veveto veveto 4,0K jun 14 12:47 lib
+ 12K -rwxrwxr-x 1 veveto veveto 8,8K jun 14 12:47 Makefile
+ 12K -rwxrwxr-x 1 veveto veveto  11K jun 14 12:47 model.sql
+4,0K -rwxrwxr-x 1 veveto veveto  555 jun 14 12:47 package.json
+4,0K -rwxrwxr-x 1 veveto veveto   86 jun 14 12:47 postcss.config.js
+4,0K -rwxrwxr-x 1 veveto veveto 3,9K jun 14 12:47 .pre-commit-config.yaml
+4,0K -rwxrwxr-x 1 veveto veveto   24 jun 14 12:47 .prettierignore
+4,0K -rwxrwxr-x 1 veveto veveto  121 jun 14 12:47 .prettierrc
+8,0K -rwxrwxr-x 1 veveto veveto 4,3K jun 14 12:47 pyproject.toml
+4,0K -rwxrwxr-x 1 veveto veveto  285 jun 14 12:47 pytest.ini
+4,0K -rwxrwxr-x 1 veveto veveto 2,2K jun 14 12:47 README.md
+4,0K -rwxrwxr-x 1 veveto veveto  581 jun 14 12:47 requirements-test.txt
+4,0K -rwxrwxr-x 1 veveto veveto  149 jun 14 12:47 requirements.txt
+ 12K -rwxrwxr-x 1 veveto veveto 8,9K jun 14 12:47 run-test.sh
+8,0K -rwxrwxr-x 1 veveto veveto 5,7K jun 14 12:47 setup.sh
+4,0K drwxrwxr-x 4 veveto veveto 4,0K jun 14 12:47 static
+4,0K -rwxrwxr-x 1 veveto veveto  170 jun 14 12:47 tailwind.config.js
+4,0K drwxrwxr-x 4 veveto veveto 4,0K jun 14 12:47 templates
+ 12K -rwxrwxr-x 1 veveto veveto  11K jun 14 12:47 TESTING.md
+4,0K drwxrwxr-x 2 veveto veveto 4,0K jun 14 12:47 tests
+8,0K -rwxrwxr-x 1 veveto veveto 7,1K jun 14 12:47 validate.sh
+ 32K -rwxrwxr-x 1 veveto veveto  31K jun 14 12:47 yarn.lock
+rm .env
+clear
+./setup.sh
+🚀 === SETUP INICIAL DO PROJETO SIA2 ===
+🐳 Verificando Docker...
+✅ Docker está disponível
+✅ Node.js está disponível (v22.15.0)
+
+📝 === CONFIGURAÇÃO DO AMBIENTE ===
+🔧 Configurando arquivo .env...
+📋 Base copiada de .env.example
+
+🔐 === CONFIGURAÇÃO DO BANCO DE DADOS ===
+Nome do banco [siia]: 
+Usuário do banco [lopinhos]: 
+Senha do banco [senha123]: 
+🔑 Gerando chave secreta...
+
+📧 === CONFIGURAÇÃO DE EMAIL (opcional) ===
+Servidor SMTP [smtp.gmail.com]: 
+Porta SMTP [587]: 
+Email para recuperação de senha (opcional): recuperacao.siia@gmail.com
+Senha do email (ou app password): 
+✅ Arquivo .env configurado!
+
+📋 === VERIFICANDO ARQUIVOS NECESSÁRIOS ===
+✅ docker-compose.yml
+✅ Dockerfile.web
+✅ init.sql
+✅ app.py
+✅ requirements.txt
+✅ package.json
+
+🎯 === OPÇÕES DE INICIALIZAÇÃO ===
+1. Apenas banco de dados
+2. Projeto completo (web + banco)
+3. Projeto completo + móvel
+
+Escolha uma opção [2]: 2
+🚀 Iniciando projeto completo...
+WARN[0000] /home/veveto/Downloads/SIIA/website/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 20/20
+ ✔ tailwind Pulled                                                                                                                                                                                                                   24.7s 
+   ✔ f18232174bc9 Pull complete                                                                                                                                                                                                       4.8s 
+   ✔ dd71dde834b5 Pull complete                                                                                                                                                                                                      17.3s 
+   ✔ 1e5a4c89cee5 Pull complete                                                                                                                                                                                                      22.4s 
+   ✔ 25ff2da83641 Pull complete                                                                                                                                                                                                      23.0s 
+ ✔ postgres Pulled                                                                                                                                                                                                                   24.8s 
+   ✔ dad67da3f26b Pull complete                                                                                                                                                                                                       2.1s 
+   ✔ c6667110959a Pull complete                                                                                                                                                                                                       2.1s 
+   ✔ a6ef02a978c3 Pull complete                                                                                                                                                                                                       2.2s 
+   ✔ 02cc8cf6d8dd Pull complete                                                                                                                                                                                                       2.3s 
+   ✔ f4c4a9a671ae Pull complete                                                                                                                                                                                                       2.7s 
+   ✔ 8ee74200f81b Pull complete                                                                                                                                                                                                       2.8s 
+   ✔ 598745af2ec7 Pull complete                                                                                                                                                                                                       2.8s 
+   ✔ ecd27617158f Pull complete                                                                                                                                                                                                       2.8s 
+   ✔ f461e2873ab2 Pull complete                                                                                                                                                                                                      19.9s 
+   ✔ 3e33fda50871 Pull complete                                                                                                                                                                                                      23.0s 
+   ✔ 5d4c65957a72 Pull complete                                                                                                                                                                                                      23.0s 
+   ✔ 6b0f5168a1c6 Pull complete                                                                                                                                                                                                      23.0s 
+   ✔ cab1e29ab063 Pull complete                                                                                                                                                                                                      23.1s 
+   ✔ 9e594ba6e3d2 Pull complete                                                                                                                                                                                                      23.1s 
+Compose now can delegate build to bake for better performances
+Just set COMPOSE_BAKE=true
+[+] Building 179.5s (13/13) FINISHED                                                                                                                                                                                        docker:default
+ => [web internal] load build definition from Dockerfile.web                                                                                                                                                                          0.0s
+ => => transferring dockerfile: 764B                                                                                                                                                                                                  0.0s
+ => [web internal] load metadata for docker.io/library/python:3.10-slim                                                                                                                                                               1.5s
+ => [web internal] load .dockerignore                                                                                                                                                                                                 0.0s
+ => => transferring context: 699B                                                                                                                                                                                                     0.0s
+ => [web internal] load build context                                                                                                                                                                                                 0.1s
+ => => transferring context: 666.46kB                                                                                                                                                                                                 0.0s
+ => [web 1/7] FROM docker.io/library/python:3.10-slim@sha256:034724ef64585eeb0e82385e9aabcbeabfe5f7cae2c2dcedb1da95114372b6d7                                                                                                         2.1s
+ => => resolve docker.io/library/python:3.10-slim@sha256:034724ef64585eeb0e82385e9aabcbeabfe5f7cae2c2dcedb1da95114372b6d7                                                                                                             0.0s
+ => => sha256:4b03b4f4fa5c508f2b215b45a26f6dd30b310aaa2a4a24b593f630bdf07da1a8 3.51MB / 3.51MB                                                                                                                                        0.7s
+ => => sha256:50a956a18493962b03f716b86299535ce63a1d6a1a1770be582b59f8fedb46b7 15.65MB / 15.65MB                                                                                                                                      1.4s
+ => => sha256:c14326ed6c858d7eb04960cbc1469da7ff6192285edf9bdb9d3c4cf035105826 250B / 250B                                                                                                                                            0.6s
+ => => sha256:034724ef64585eeb0e82385e9aabcbeabfe5f7cae2c2dcedb1da95114372b6d7 9.13kB / 9.13kB                                                                                                                                        0.0s
+ => => sha256:fd939bec23d8e9a1274d70e24db96bceed53e56612f828098f5505086a64f523 1.75kB / 1.75kB                                                                                                                                        0.0s
+ => => sha256:cce3651534b6639e18fe761c0f1bc3974459853da95ebadadc607194524d77a7 5.37kB / 5.37kB                                                                                                                                        0.0s
+ => => extracting sha256:4b03b4f4fa5c508f2b215b45a26f6dd30b310aaa2a4a24b593f630bdf07da1a8                                                                                                                                             0.1s
+ => => extracting sha256:50a956a18493962b03f716b86299535ce63a1d6a1a1770be582b59f8fedb46b7                                                                                                                                             0.4s
+ => => extracting sha256:c14326ed6c858d7eb04960cbc1469da7ff6192285edf9bdb9d3c4cf035105826                                                                                                                                             0.0s
+ => [web 2/7] RUN apt-get update && apt-get install -y     gcc     g++     libpq-dev     libgl1-mesa-glx     libglib2.0-0     libsm6     libxext6     libxrender-dev     libgomp1     && rm -rf /var/lib/apt/lists/*                 42.5s
+ => [web 3/7] WORKDIR /app                                                                                                                                                                                                            0.0s 
+ => [web 4/7] COPY requirements.txt .                                                                                                                                                                                                 0.1s 
+ => [web 5/7] RUN pip install --no-cache-dir --upgrade pip &&     pip install --no-cache-dir -r requirements.txt                                                                                                                     61.3s 
+ => [web 6/7] COPY . .                                                                                                                                                                                                                0.1s 
+ => [web 7/7] RUN mkdir -p logs                                                                                                                                                                                                       1.5s 
+ => [web] exporting to image                                                                                                                                                                                                         69.9s 
+ => => exporting layers                                                                                                                                                                                                              69.7s 
+ => => writing image sha256:2d69703cb8533c496b1bdd309901b4fc7c4af6f0b09781bca3f93b2565519fc5                                                                                                                                          0.0s 
+ => => naming to docker.io/library/website-web                                                                                                                                                                                        0.0s 
+ => [web] resolving provenance for metadata file                                                                                                                                                                                      0.0s
+[+] Running 6/6
+ ✔ web                             Built                                                                                                                                                                                              0.0s 
+ ✔ Network website_sia2_network    Created                                                                                                                                                                                            0.2s 
+ ✔ Volume "website_postgres_data"  Created                                                                                                                                                                                            0.0s 
+ ✔ Container sia2_postgres         Healthy                                                                                                                                                                                           12.9s 
+ ✔ Container sia2_tailwind         Exited                                                                                                                                                                                            19.7s 
+ ✔ Container sia2_web              Started                                                                                                                                                                                           19.7s 
+
+✅ Projeto iniciado!
+🌐 Acesse: http://localhost:5000
+📊 Logs: docker compose logs -f
+
+🎉 === SETUP CONCLUÍDO ===
+
+📋 Comandos úteis:
+   docker compose up          # Iniciar tudo
+   docker compose down        # Parar tudo
+   docker compose logs -f     # Ver logs
+   ./db-rm.sh                 # Limpeza completa
+
+📱 Para o app móvel:
+   docker compose --profile mobile up
+   docker compose exec mobile python main_app.py
+docker compose up
+WARN[0000] /home/veveto/Downloads/SIIA/website/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 3/3
+ ✔ Container sia2_postgres  Running                                                                                                                                                                                                   0.0s 
+ ✔ Container sia2_tailwind  Created                                                                                                                                                                                                   0.0s 
+ ✔ Container sia2_web       Created                                                                                                                                                                                                   0.0s 
+Attaching to sia2_postgres, sia2_tailwind, sia2_web
+sia2_tailwind  | 
+sia2_tailwind  | added 3 packages, and audited 60 packages in 2s
+sia2_tailwind  | 
+sia2_tailwind  | 17 packages are looking for funding
+sia2_tailwind  |   run `npm fund` for details
+sia2_tailwind  | 
+sia2_tailwind  | found 0 vulnerabilities
+sia2_tailwind  | 
+sia2_tailwind  | > build
+sia2_tailwind  | > yarn tailwindcss -i ./static/src/input.css -o ./static/dist/css/output.css --watch
+sia2_tailwind  | 
+sia2_tailwind  | yarn run v1.22.22
+sia2_tailwind  | $ /app/node_modules/.bin/tailwindcss -i ./static/src/input.css -o ./static/dist/css/output.css --watch
+sia2_tailwind  | ≈ tailwindcss v4.1.8
+sia2_tailwind  | 
+sia2_tailwind  | /*! 🌼 daisyUI 5.0.42 */
+sia2_tailwind  | Done in 0.78s.
+sia2_tailwind exited with code 0
+sia2_web       | sh: 1: source: not found
+sia2_web exited with code 127
+sia2_postgres  | 2025-06-14 15:57:54.955 UTC [67] LOG:  checkpoint starting: time
+sia2_postgres  | 2025-06-14 15:58:04.689 UTC [67] LOG:  checkpoint complete: wrote 97 buffers (0.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=9.717 s, sync=0.008 s, total=9.735 s; sync files=31, longest=0.004 s, average=0.001 s; distance=424 kB, estimate=424 kB

@@ -1,9 +1,9 @@
-# Makefile para projeto SIA2 - Docker
+# Makefile para projeto SIIA - Docker
 .PHONY: help setup validate start stop clean logs shell db-init db-clean mobile
 
 # Comando padrão
 help:
-	@echo "🚀 SIA2 - Sistema de Automação de Estufa"
+	@echo "🚀 SIIA - Sistema de Automação de Estufa"
 	@echo ""
 	@echo "Comandos disponíveis:"
 	@echo "  make setup      - Configuração inicial completa"
@@ -60,7 +60,7 @@ validate:
 
 # Iniciar projeto
 start:
-	@echo "🚀 Iniciando projeto SIA2..."
+	@echo "🚀 Iniciando projeto SIIA..."
 	@docker compose up -d
 	@echo "✅ Projeto iniciado!"
 	@echo "🌐 Acesse: http://localhost:5000"
@@ -99,7 +99,7 @@ shell:
 # Shell no banco
 db-shell:
 	@echo "🗄️ Abrindo shell no PostgreSQL..."
-	@docker compose exec postgres psql -U lopinhos -d siia
+	@docker compose exec db psql -U $${DB_USER:-lopinhos} -d $${DB_NAME:-siia}
 
 # Inicializar banco
 db-init:
@@ -111,7 +111,7 @@ db-init:
 db-clean:
 	@echo "🧹 Limpando dados do banco..."
 	@docker compose down -v
-	@docker volume rm sia2_postgres_data 2>/dev/null || true
+	@docker volume rm siia_postgres_data 2>/dev/null || true
 
 # Status
 status:
@@ -150,7 +150,7 @@ test-mobile:
 backup:
 	@echo "💾 Fazendo backup do banco..."
 	@mkdir -p backups
-	@docker compose exec postgres pg_dump -U lopinhos siia > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+	@docker compose exec db pg_dump -U $${DB_USER:-lopinhos} $${DB_NAME:-siia} > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "✅ Backup salvo em backups/"
 
 # Instalação

@@ -40,8 +40,8 @@ app = Flask(__name__)
 
 initialize_firebase()
 
-app.secret_key = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///siia.db")
 db.init_app(app)
 
 login_manager = LoginManager(app)
@@ -1513,4 +1513,4 @@ def api_mobile_perfil():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

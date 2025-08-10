@@ -1,57 +1,76 @@
-# Sistema de Irrigação Automático e Inteligente | SIIA | Flask
+# SIIA Web (Flask) – Início rápido com Docker
 
-Este é um projeto de estufa automática (chamado de SIIA), essa parte utiliza o framework Flask para criar uma interface web e integrando inteligência artificial para análise de dados e tomada de decisões.
+Interface web do Sistema Inteligente de Irrigação Automatizada (SIIA) usando Flask + PostgreSQL.
 
-## Configuração do Ambiente
+## Pré‑requisitos
 
-1. **Instale o Python**: Certifique-se de ter o Python instalado em sua máquina. Você pode baixar e instalar o Python em [python.org](https://www.python.org/).
+- Windows/Mac: Docker Desktop
+- Linux: Docker Engine e Docker Compose
 
-2. **Instale as Dependências do Projeto**: No terminal, navegue até a pasta do projeto e execute o seguinte comando para instalar as dependências necessárias:
+## Subir o servidor (web + banco)
 
-    ```bash
-    pip install Flask Flask-SQLAlchemy flask-login psycopg2 scikit-learn matplotlib opencv-python-headless python-dotenv paho-mqtt argon2-cffi firebase-admin
-    ```
+1) Crie o arquivo de ambiente (padrão funciona):
 
-3. **Configure o Banco de Dados**: Certifique-se de ter o PostgreSQL instalado e configurado em sua máquina. Crie um banco de dados e uma tabela para armazenar os dados da estufa. Aqui está um exemplo de tabela:
+```bash
+cp .env.example .env
+```
 
-    ```sql
-    CREATE TABLE dados (
-        id SERIAL PRIMARY KEY,
-        timestamp TIMESTAMP NOT NULL,
-        temperatura FLOAT NOT NULL,       
-        umidade FLOAT NOT NULL,
-        path_image TEXT
-    );
-    ```
+1) Suba os serviços:
 
-    Crie um arquivo chamado `.env` na pasta do projeto e adicione as seguintes variáveis de ambiente:
+```bash
+./up.sh                 # Linux/macOS
+# ou
+docker compose up -d --build
+```
 
-    ```env
-    DATABASE_URL=postgresql://username:xxxxxxxx@xxxxxxxxx:5432/dbname
-    ```
+1) Acesse:
 
-    Para teste, você pode popular a tabela com alguns dados de exemplo que estão no arquivo `init.sql`.
+<http://localhost:5000>
 
-## Executando o Aplicativo
+Parar/limpar:
 
-1. **Executar o Aplicativo**: No terminal, navegue até a pasta do projeto e execute o seguinte comando para iniciar o servidor Flask:
+```bash
+docker compose down     # parar
+./db-rm.sh              # limpeza completa (containers + volumes)
+```
 
-    ```bash
-    python app.py
-    ```
+## Banco de Dados
 
-2. **Acessar o Aplicativo**: Abra um navegador da web e vá para o seguinte endereço:
+- Recriar banco e opcionalmente dados de exemplo:
 
-    ```bash
-    http://localhost:5000
-    ```
+```bash
+./db-init.sh
+```
 
-    Você deve ver a interface do aplicativo Flask exibindo os dados da estufa.
+- Console do Postgres:
 
-## Contribuição
+```bash
+make db-shell
+```
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
+## Testes
 
-## Licença
+Execute os testes no container web:
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+```bash
+docker compose exec web pytest -q
+```
+
+## Estrutura simplificada
+
+- web (Flask): serviço `web` exposto em 5000
+- banco (Postgres): serviço `db` com init automático via `init.sql` e `model.sql`
+
+## Variáveis (.env)
+
+Veja `.env.example`. Por padrão, o compose usa:
+
+- DB_NAME=siia
+- DB_USER=lopinhos
+- DB_PASSWORD=senha123
+- DATABASE_URL=postgresql://lopinhos:senha123@db:5432/siia
+
+## Dicas
+
+- Logs: `docker compose logs -f`
+- Rebuild: `docker compose build --no-cache`
