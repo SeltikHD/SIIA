@@ -5,6 +5,28 @@
 		"**/__pycache__": true,
 		"**/node_modules": true,
 		"**/*.lock": true,
-		"**/postcss.config.js": true
+		"**/postcss.config.js": true,
+		"**/.pytest_cache": true,
+		"**/.benchmarks": true,
+		"**/.coverage": true,
+		"**/htmlcov": true,
+		"**/*.log": true,
+		"**/log.txt": true
+	},
+	"explorer.excludeGitIgnore": true,
+	"explorer.compactFolders": true,
+	"explorer.fileNesting.enabled": true,
+	"explorer.fileNesting.expand": false,
+	"explorer.fileNesting.patterns": {
+		"README.md": "README-*.md, DOCKER_README.md, TESTING.md, DOCKER.md",
+		"docker-compose.yml": ".env, .env.*, .dockerignore, docker-compose.*.yml, docker-compose.*.yaml, Dockerfile.web, DOCKER.md, DOCKER_README.md",
+		"Dockerfile": ".dockerignore, docker-compose.yml, docker-compose.*.yml, docker-compose.*.yaml",
+		"Dockerfile.web": ".dockerignore, docker-compose.yml, docker-compose.*.yml, docker-compose.*.yaml",
+		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .prettier*, .prettierrc*, .prettierignore, postcss.config.js, tailwind.config.js",
+		"pyproject.toml": "setup.cfg, setup.py, requirements.txt, requirements-test.txt, .flake8, .bandit, .pylintrc",
+		"pytest.ini": ".pytest_cache, .coverage, .benchmarks, debug-test.sh, run-test.sh",
+		"Makefile": "*.mk, up.sh, setup.sh, validate.sh, db-init.sh, db-rm.sh",
+		".gitignore": ".gitattributes, .gitkeep",
+		"init.sql": "model.sql"
 	}
 }
