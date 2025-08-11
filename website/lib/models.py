@@ -150,7 +150,7 @@ class Usuario(db.Model):
 
 
 class Log(db.Model):
-    usuario_id = db.Column(db.Integer, db.ForeignKey(USUARIO_ID), nullable=False)
+    __tablename__ = "log"
     id = db.Column(db.Integer, primary_key=True)
     data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
     usuario_id = db.Column(db.Integer, db.ForeignKey(USUARIO_ID), nullable=False)
