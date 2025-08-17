@@ -31,6 +31,11 @@
 
     <body>
         {% include "components/header.html" %}
+        <!-- Flash messages -->
+        <div class="container mx-auto px-4 mt-4 space-y-2">
+            {% include "components/flash/success.html" %}
+            {% include "components/flash/error.html" %}
+        </div>
         <div>{% block content %}{% endblock content %}</div>
         {% include "components/footer.html" %}
         <script type="module">

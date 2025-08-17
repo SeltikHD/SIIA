@@ -18,6 +18,8 @@ from lib.models import (
     CondicaoIdeal,
     Cultura,
     DadoPeriodico,
+    Fertilizacao,
+    FertilizanteCultura,
     Fertilizante,
     Grupo,
     Log,
@@ -651,22 +653,40 @@ def admin_cultura_delete(id):
     """Deletar cultura - Nível 3+"""
     cultura = Cultura.query.get_or_404(id)
 
-    # Verifica se tem sessões associadas
-    if cultura.sessoes:
-        flash("Não é possível deletar uma cultura que possui sessões associadas", "error")
-        return redirect(url_for("admin_cultura_detail", id=id))
-
     nome = cultura.nome
 
-    # Remove condições ideais associadas
-    CondicaoIdeal.query.filter_by(cultura_id=id).delete()
+    try:
+        # Remove sessões e seus dados relacionados (irrigação e dados periódicos)
+        sessoes = Sessao.query.filter_by(cultura_id=id).all()
+        for sessao in sessoes:
+            DadoPeriodico.query.filter_by(sessao_id=sessao.id).delete()
+            SessaoIrrigacao.query.filter_by(sessao_id=sessao.id).delete()
+            db.session.delete(sessao)
 
-    db.session.delete(cultura)
-    db.session.commit()
+        # Por segurança, remove dados periódicos que referenciem diretamente a cultura
+        DadoPeriodico.query.filter_by(cultura_id=id).delete()
 
-    log_admin_action("Cultura deletada", f"ID: {id}, Nome: {nome}")
-    flash("Cultura deletada com sucesso!", "success")
-    return redirect(url_for("admin_culturas_list"))
+        # Remove associações de fertilizantes e registros de fertilização
+        assoc_list = FertilizanteCultura.query.filter_by(cultura_id=id).all()
+        for assoc in assoc_list:
+            Fertilizacao.query.filter_by(fertilizante_cultura_id=assoc.id).delete()
+        FertilizanteCultura.query.filter_by(cultura_id=id).delete()
+
+        # Remove condições ideais associadas
+        CondicaoIdeal.query.filter_by(cultura_id=id).delete()
+
+        # Finalmente, remove a cultura
+        db.session.delete(cultura)
+        db.session.commit()
+
+        log_admin_action("Cultura deletada", f"ID: {id}, Nome: {nome}")
+        flash("Cultura deletada com sucesso!", "success")
+        return redirect(url_for("admin_culturas_list"))
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao deletar cultura {id}: {e}")
+        flash("Erro ao deletar cultura. Verifique dependências e tente novamente.", "error")
+        return redirect(url_for("admin_cultura_detail", id=id))
 
 
 @app.route("/admin/condicoes-ideais")

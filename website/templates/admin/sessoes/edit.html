@@ -65,13 +65,7 @@ Administração{% endblock %} {% block content %}
                             {% for cultura in culturas %}
                             <option
                                 value="{{ cultura.id }}"
-                                {%
-                                if
-                                cultura.id=""
-                                ="sessao.cultura_id"
-                                %}selected{%
-                                endif
-                                %}
+                                {% if cultura.id == sessao.cultura_id %}selected{% endif %}
                             >
                                 {{ cultura.nome }}
                             </option>
