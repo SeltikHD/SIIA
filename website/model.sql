@@ -170,3 +170,30 @@ INSERT INTO log (usuario_id, mensagem) VALUES
 ((SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), 'Sistema inicializado com dados de modelo.'),
 ((SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), 'Configuração de culturas e condições ideais carregada.'),
 ((SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), 'Fertilizantes e sessões configurados com sucesso.');
+
+--* Dados iniciais para MQTT e IoT *--
+
+-- Status MQTT dos tópicos
+INSERT INTO status_mqtt (topico, status_conexao, erro_ultimo) VALUES
+('estufa/temperatura', false, NULL),
+('estufa/umidade/ar', false, NULL),
+('estufa/umidade/solo/#', false, NULL),
+('estufa/camera/imagem', false, NULL),
+('estufa/irrigacao/status', false, NULL),
+('estufa/ventilacao/status', false, NULL),
+('estufa/iluminacao/status', false, NULL),
+('estufa/alerta', false, NULL);
+
+-- Status inicial dos dispositivos
+INSERT INTO status_dispositivo (tipo_dispositivo, status, sessao_id, usuario_id) VALUES
+('irrigacao', 'FECHADO', NULL, NULL),
+('ventilacao', 'DESLIGADO', NULL, NULL),
+('iluminacao', 'DESLIGADO', NULL, NULL);
+
+-- Comandos de exemplo (histórico)
+INSERT INTO comando_dispositivo (tipo_dispositivo, comando, sessao_id, usuario_id, executado) VALUES
+('ventilacao', 'ON', NULL, (SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), true),
+('ventilacao', 'OFF', NULL, (SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), true),
+('iluminacao', 'ON', NULL, (SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), true),
+('irrigacao', 'ON', (SELECT id FROM sessao WHERE nome = 'Seção A - Tomates'), (SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), true),
+('irrigacao', 'OFF', (SELECT id FROM sessao WHERE nome = 'Seção A - Tomates'), (SELECT id FROM usuario WHERE email = 'admin@siia.ifpb.edu.br'), true);

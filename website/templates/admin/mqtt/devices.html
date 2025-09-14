@@ -1,0 +1,351 @@
+{% extends "components/base.html" %} 
+{% block title %}Controle de Dispositivos IoT{% endblock %} 
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Controle de Dispositivos IoT</h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_mqtt_dashboard') }}">MQTT</a></li>
+                    <li>Dispositivos</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{{ url_for('admin_mqtt_dashboard') }}" class="btn btn-ghost">
+            ← Voltar ao Dashboard
+        </a>
+    </div>
+
+    <!-- Status Atual dos Dispositivos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Irrigação -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">💧 Sistema de Irrigação</h3>
+                    {% set irrig_status = devices_status.get('irrigacao', {}) %}
+                    {% if irrig_status.status in ['LIGADO', 'ABERTO'] %}
+                        <div class="badge badge-success">{{ irrig_status.status }}</div>
+                    {% else %}
+                        <div class="badge badge-ghost">{{ irrig_status.status }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Sessão para Irrigar:</span>
+                        </label>
+                        <select id="irrigacao-sessao" class="select select-bordered select-sm">
+                            <option value="">Selecione uma sessão</option>
+                            {% for sessao in sessoes %}
+                            <option value="{{ sessao.id }}" 
+                                {% if irrig_status.sessao_id == sessao.id %}selected{% endif %}>
+                                {{ sessao.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button class="btn btn-success btn-sm flex-1" 
+                                onclick="sendDeviceCommand('irrigacao', 'ON')">
+                            ▶️ Ligar
+                        </button>
+                        <button class="btn btn-error btn-sm flex-1" 
+                                onclick="sendDeviceCommand('irrigacao', 'OFF')">
+                            ⏹️ Desligar
+                        </button>
+                    </div>
+                    
+                    {% if irrig_status.data_hora %}
+                    <div class="text-xs text-base-content/70">
+                        Última atualização: {{ irrig_status.data_hora }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventilação -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">🌀 Sistema de Ventilação</h3>
+                    {% set vent_status = devices_status.get('ventilacao', {}) %}
+                    {% if vent_status.status == 'LIGADO' %}
+                        <div class="badge badge-success">{{ vent_status.status }}</div>
+                    {% else %}
+                        <div class="badge badge-ghost">{{ vent_status.status }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex space-x-2">
+                        <button class="btn btn-success btn-sm flex-1" 
+                                onclick="sendDeviceCommand('ventilacao', 'ON')">
+                            ▶️ Ligar
+                        </button>
+                        <button class="btn btn-error btn-sm flex-1" 
+                                onclick="sendDeviceCommand('ventilacao', 'OFF')">
+                            ⏹️ Desligar
+                        </button>
+                    </div>
+                    
+                    {% if vent_status.data_hora %}
+                    <div class="text-xs text-base-content/70">
+                        Última atualização: {{ vent_status.data_hora }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Iluminação -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title text-lg">💡 Sistema de Iluminação</h3>
+                    {% set ilum_status = devices_status.get('iluminacao', {}) %}
+                    {% if ilum_status.status == 'LIGADO' %}
+                        <div class="badge badge-success">{{ ilum_status.status }}</div>
+                    {% else %}
+                        <div class="badge badge-ghost">{{ ilum_status.status }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex space-x-2">
+                        <button class="btn btn-success btn-sm flex-1" 
+                                onclick="sendDeviceCommand('iluminacao', 'ON')">
+                            ▶️ Ligar
+                        </button>
+                        <button class="btn btn-error btn-sm flex-1" 
+                                onclick="sendDeviceCommand('iluminacao', 'OFF')">
+                            ⏹️ Desligar
+                        </button>
+                    </div>
+                    
+                    {% if ilum_status.data_hora %}
+                    <div class="text-xs text-base-content/70">
+                        Última atualização: {{ ilum_status.data_hora }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comandos Programados / Automatizados -->
+    <div class="card bg-base-100 mb-8">
+        <div class="card-body">
+            <h3 class="card-title">⏰ Controle Automático</h3>
+            <div class="alert alert-info mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Funcionalidade em desenvolvimento: Programação automática baseada em condições dos sensores</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Irrigação automática quando umidade do solo &lt;</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" placeholder="30" class="input input-bordered input-sm" disabled>
+                        <span class="bg-base-200 px-3 py-2 text-sm">%</span>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Ventilação automática quando temperatura &gt;</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" placeholder="28" class="input input-bordered input-sm" disabled>
+                        <span class="bg-base-200 px-3 py-2 text-sm">°C</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Comandos -->
+    <div class="card bg-base-100">
+        <div class="card-body">
+            <h3 class="card-title">📊 Histórico de Comandos</h3>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Dispositivo</th>
+                            <th>Comando</th>
+                            <th>Sessão</th>
+                            <th>Usuário</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comando in comandos_recentes %}
+                        <tr>
+                            <td class="text-sm">{{ comando.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                            <td>
+                                {% if comando.tipo_dispositivo == 'irrigacao' %}
+                                    💧 Irrigação
+                                {% elif comando.tipo_dispositivo == 'ventilacao' %}
+                                    🌀 Ventilação  
+                                {% elif comando.tipo_dispositivo == 'iluminacao' %}
+                                    💡 Iluminação
+                                {% else %}
+                                    {{ comando.tipo_dispositivo }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if comando.comando == 'ON' %}badge-success{% else %}badge-error{% endif %} badge-sm">
+                                    {{ comando.comando }}
+                                </span>
+                            </td>
+                            <td>{{ comando.sessao_id or '-' }}</td>
+                            <td class="text-sm">{{ comando.usuario_id }}</td>
+                            <td>
+                                {% if comando.executado %}
+                                    <span class="badge badge-success badge-xs">Executado</span>
+                                {% else %}
+                                    <span class="badge badge-warning badge-xs">Pendente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if not comandos_recentes %}
+                <div class="text-center text-base-content/70 py-8">
+                    Nenhum comando registrado ainda
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div id="confirm-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmar Comando</h3>
+        <p class="py-4" id="confirm-message">Tem certeza que deseja executar este comando?</p>
+        <div class="modal-action">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" id="confirm-button">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+let pendingCommand = null;
+
+// Função para enviar comando para dispositivos
+async function sendDeviceCommand(deviceType, command) {
+    // Para irrigação, verificar se sessão foi selecionada
+    let sessaoId = null;
+    if (deviceType === 'irrigacao') {
+        const sessaoSelect = document.getElementById('irrigacao-sessao');
+        sessaoId = sessaoSelect.value;
+        if (!sessaoId) {
+            showToast('Selecione uma sessão para irrigação', 'error');
+            return;
+        }
+    }
+
+    // Mostrar modal de confirmação
+    const message = `${command === 'ON' ? 'Ligar' : 'Desligar'} ${getDeviceName(deviceType)}${sessaoId ? ` (Sessão ${sessaoId})` : ''}?`;
+    document.getElementById('confirm-message').textContent = message;
+    
+    pendingCommand = {
+        deviceType: deviceType,
+        command: command,
+        sessaoId: sessaoId
+    };
+    
+    document.getElementById('confirm-modal').checked = true;
+}
+
+// Executar comando confirmado
+document.getElementById('confirm-button').addEventListener('click', async function() {
+    if (!pendingCommand) return;
+    
+    closeModal();
+    
+    try {
+        const response = await fetch('/admin/mqtt/command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                device_type: pendingCommand.deviceType,
+                command: pendingCommand.command,
+                sessao_id: pendingCommand.sessaoId
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            // Recarregar página após 2 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showToast(`Erro: ${result.message}`, 'error');
+        }
+    } catch (error) {
+        showToast(`Erro de conexão: ${error.message}`, 'error');
+    } finally {
+        pendingCommand = null;
+    }
+});
+
+function closeModal() {
+    document.getElementById('confirm-modal').checked = false;
+    pendingCommand = null;
+}
+
+function getDeviceName(deviceType) {
+    const names = {
+        'irrigacao': 'Sistema de Irrigação',
+        'ventilacao': 'Sistema de Ventilação',
+        'iluminacao': 'Sistema de Iluminação'
+    };
+    return names[deviceType] || deviceType;
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} fixed top-4 right-4 z-50 w-auto max-w-md`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
+
+// Auto-refresh da página a cada 60 segundos
+setInterval(() => {
+    location.reload();
+}, 60000);
+</script>
+{% endblock %}

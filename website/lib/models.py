@@ -198,3 +198,34 @@ class NotificacaoUsuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     notificacao_id = db.Column(db.Integer, db.ForeignKey("notificacao.id"), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey(USUARIO_ID), nullable=False)
+
+
+# ? Tabelas de controle de dispositivos IoT
+class StatusDispositivo(db.Model):
+    __tablename__ = "status_dispositivo"
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_dispositivo = db.Column(db.String, nullable=False)  # 'irrigacao', 'ventilacao', 'iluminacao'
+    status = db.Column(db.String, nullable=False)  # 'LIGADO', 'DESLIGADO', 'ABERTO', 'FECHADO'
+    data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
+    sessao_id = db.Column(db.Integer, db.ForeignKey("sessao.id"), nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey(USUARIO_ID), nullable=True)  # Para controle manual
+
+
+class ComandoDispositivo(db.Model):
+    __tablename__ = "comando_dispositivo"
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_dispositivo = db.Column(db.String, nullable=False)  # 'irrigacao', 'ventilacao', 'iluminacao'
+    comando = db.Column(db.String, nullable=False)  # 'ON', 'OFF'
+    data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
+    sessao_id = db.Column(db.Integer, db.ForeignKey("sessao.id"), nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey(USUARIO_ID), nullable=False)
+    executado = db.Column(db.Boolean, default=False)
+
+
+class StatusMQTT(db.Model):
+    __tablename__ = "status_mqtt"
+    id = db.Column(db.Integer, primary_key=True)
+    topico = db.Column(db.String, nullable=False)
+    ultima_mensagem = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+    status_conexao = db.Column(db.Boolean, default=False)
+    erro_ultimo = db.Column(db.String, nullable=True)

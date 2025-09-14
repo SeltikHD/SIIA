@@ -150,3 +150,37 @@ VALUES (
 );
 
 -- A senha padrão é 'SIIA@AdminPassword' em argon2id
+
+--* Tabelas para controle de dispositivos IoT via MQTT *--
+CREATE TABLE status_dispositivo (
+    id SERIAL PRIMARY KEY,
+    tipo_dispositivo VARCHAR NOT NULL, -- 'irrigacao', 'ventilacao', 'iluminacao'
+    status VARCHAR NOT NULL, -- 'LIGADO', 'DESLIGADO', 'ABERTO', 'FECHADO'
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sessao_id INTEGER REFERENCES sessao(id) ON DELETE SET NULL, -- Apenas para irrigacao
+    usuario_id INTEGER REFERENCES usuario(id) ON DELETE SET NULL -- Quem ativou manualmente
+);
+
+CREATE TABLE comando_dispositivo (
+    id SERIAL PRIMARY KEY,
+    tipo_dispositivo VARCHAR NOT NULL, -- 'irrigacao', 'ventilacao', 'iluminacao'
+    comando VARCHAR NOT NULL, -- 'ON', 'OFF'
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sessao_id INTEGER REFERENCES sessao(id) ON DELETE SET NULL, -- Para irrigacao
+    usuario_id INTEGER REFERENCES usuario(id) ON DELETE CASCADE NOT NULL, -- Quem enviou o comando
+    executado BOOLEAN DEFAULT FALSE -- Se o comando foi executado com sucesso
+);
+
+CREATE TABLE status_mqtt (
+    id SERIAL PRIMARY KEY,
+    topico VARCHAR NOT NULL, -- Tópico MQTT
+    ultima_mensagem TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status_conexao BOOLEAN DEFAULT FALSE, -- Se o tópico está ativo
+    erro_ultimo VARCHAR -- Último erro registrado para este tópico
+);
+
+-- Índices para otimização das consultas MQTT
+CREATE INDEX idx_status_dispositivo_tipo_data ON status_dispositivo(tipo_dispositivo, data_hora DESC);
+CREATE INDEX idx_comando_dispositivo_usuario_data ON comando_dispositivo(usuario_id, data_hora DESC);
+CREATE INDEX idx_status_mqtt_topico ON status_mqtt(topico);
+CREATE INDEX idx_dado_periodico_sessao_data ON dado_periodico(sessao_id, data_hora DESC);

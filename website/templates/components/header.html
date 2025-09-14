@@ -49,6 +49,30 @@
                                     Sessões
                                 </a>
                             </li>
+                            <li>
+                                <details>
+                                    <summary>Sistema IoT</summary>
+                                    <ul class="p-2">
+                                        <li>
+                                            <a href="{{ url_for('admin_mqtt_dashboard') }}">
+                                                Dashboard MQTT
+                                            </a>
+                                        </li>
+                                        {% if current_user.grupo.nivel_acesso >= 3 %}
+                                        <li>
+                                            <a href="{{ url_for('admin_mqtt_devices') }}">
+                                                Dispositivos
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ url_for('admin_mqtt_status') }}">
+                                                Status Conexão
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </details>
+                            </li>
                             {% if current_user.grupo.nivel_acesso >= 3 %}
                             <li>
                                 <a href="{{ url_for('admin_condicoes_list') }}">

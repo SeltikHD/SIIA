@@ -5,6 +5,7 @@ Este guia explica como configurar e executar o projeto SIIA usando Docker.
 ## 🚀 Início Rápido
 
 ### 1. Setup Automático
+
 ```bash
 chmod +x setup.sh
 ./setup.sh
@@ -12,7 +13,8 @@ chmod +x setup.sh
 
 ### 2. Setup Manual
 
-#### Configurar ambiente:
+#### Configurar ambiente
+
 ```bash
 # Copiar arquivo de exemplo
 cp .env.example .env
@@ -21,13 +23,15 @@ cp .env.example .env
 nano .env
 ```
 
-#### Inicializar banco:
+#### Inicializar banco
+
 ```bash
 chmod +x db-init.sh
 ./db-init.sh
 ```
 
-#### Iniciar projeto:
+#### Iniciar projeto
+
 ```bash
 # Apenas web + banco
 docker compose up
@@ -42,7 +46,8 @@ docker compose --profile mobile up
 - **Git** (para clonar o projeto)
 - **X11** (para app móvel no Linux)
 
-### Instalação Docker (Ubuntu/Debian):
+### Instalação Docker (Ubuntu/Debian)
+
 ```bash
 sudo apt update
 sudo apt install docker.io docker-compose
@@ -53,7 +58,8 @@ sudo usermod -aG docker $USER
 
 ## 🔧 Configuração
 
-### Arquivo .env obrigatório:
+### Arquivo .env obrigatório
+
 ```env
 # Banco de dados
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/siia
@@ -80,30 +86,36 @@ SITE_URL=http://localhost:5000
 
 ## 🐳 Serviços Docker
 
-### Serviços incluídos:
+### Serviços incluídos
+
 - **postgres**: Banco PostgreSQL 15
 - **tailwind**: Compilação CSS (Node.js)
 - **web**: Aplicação Flask principal
 - **mobile**: App móvel Kivy (profile opcional)
 
-### Portas expostas:
+### Portas expostas
+
 - **5000**: Aplicação web Flask
 - **5432**: PostgreSQL
 
 ## 📜 Scripts Disponíveis
 
 ### ./setup.sh
+
 Setup inicial completo com configuração interativa do .env
 
 ### ./db-init.sh  
+
 Inicializa banco PostgreSQL com Docker Compose
 
 ### ./db-rm.sh
+
 Remove containers, volumes e dados do projeto
 
 ## 🔄 Comandos Docker Compose
 
-### Básicos:
+### Básicos
+
 ```bash
 # Iniciar tudo
 docker compose up
@@ -121,7 +133,8 @@ docker compose down
 docker compose down -v
 ```
 
-### Logs e debug:
+### Logs e debug
+
 ```bash
 # Ver logs de todos os serviços
 docker compose logs -f
@@ -134,7 +147,8 @@ docker compose exec web bash
 docker compose exec postgres psql -U lopinhos -d siia
 ```
 
-### Rebuild:
+### Rebuild
+
 ```bash
 # Reconstruir imagens
 docker compose build
@@ -145,7 +159,8 @@ docker compose up --build
 
 ## 📱 App Móvel
 
-### Executar app móvel:
+### Executar app móvel
+
 ```bash
 # Iniciar com profile mobile
 docker compose --profile mobile up -d
@@ -161,7 +176,8 @@ pip install -r requirements.txt
 python main_app.py
 ```
 
-### X11 no Linux:
+### X11 no Linux
+
 ```bash
 # Permitir conexões X11
 xhost +local:docker
@@ -172,7 +188,8 @@ export DISPLAY=:0
 
 ## 🗄️ Banco de Dados
 
-### Conectar diretamente:
+### Conectar diretamente
+
 ```bash
 # Via docker compose
 docker compose exec postgres psql -U lopinhos -d siia
@@ -181,7 +198,8 @@ docker compose exec postgres psql -U lopinhos -d siia
 psql -h localhost -U lopinhos -d siia
 ```
 
-### Backup e restore:
+### Backup e restore
+
 ```bash
 # Backup
 docker compose exec postgres pg_dump -U lopinhos siia > backup.sql
@@ -192,13 +210,16 @@ docker compose exec -T postgres psql -U lopinhos siia < backup.sql
 
 ## 🔧 Desenvolvimento
 
-### Hot reload:
+### Hot reload
+
 O volume binding permite edição em tempo real:
+
 - **Web**: Código Python recarrega automaticamente
 - **CSS**: Tailwind recompila com --watch
 - **Mobile**: Reiniciar container após mudanças
 
-### Debug Flask:
+### Debug Flask
+
 ```bash
 # Ver logs detalhados
 docker compose logs -f web
@@ -213,12 +234,14 @@ FLASK_DEBUG=1
 
 ## 🧹 Limpeza
 
-### Limpeza básica:
+### Limpeza básica
+
 ```bash
 ./db-rm.sh
 ```
 
-### Limpeza completa Docker:
+### Limpeza completa Docker
+
 ```bash
 docker system prune -a
 docker volume prune
@@ -227,6 +250,7 @@ docker volume prune
 ## ⚠️ Troubleshooting
 
 ### Problema: "Port already in use"
+
 ```bash
 # Verificar o que usa a porta
 sudo lsof -i :5000
@@ -235,7 +259,8 @@ sudo lsof -i :5432
 # Parar processos ou mudar porta no docker-compose.yml
 ```
 
-### Problema: "Permission denied" 
+### Problema: "Permission denied"
+
 ```bash
 # Adicionar usuário ao grupo docker
 sudo usermod -aG docker $USER
@@ -246,6 +271,7 @@ sudo docker compose up
 ```
 
 ### Problema: ".env not found"
+
 ```bash
 # Criar .env baseado no exemplo
 cp .env.example .env
@@ -253,6 +279,7 @@ cp .env.example .env
 ```
 
 ### Problema: App móvel não abre
+
 ```bash
 # X11 no Linux
 xhost +local:docker
@@ -264,13 +291,15 @@ cd mobile && python main_app.py
 
 ## 📊 Monitoramento
 
-### Status dos serviços:
+### Status dos serviços
+
 ```bash
 docker compose ps
 docker compose top
 ```
 
-### Logs em tempo real:
+### Logs em tempo real
+
 ```bash
 # Todos os serviços
 docker compose logs -f
@@ -282,7 +311,8 @@ docker compose logs -f web
 docker compose logs -f postgres
 ```
 
-### Métricas de uso:
+### Métricas de uso
+
 ```bash
 docker stats
 ```
@@ -292,13 +322,14 @@ docker stats
 Para ambiente de produção, considere:
 
 1. **Usar imagens específicas de versão**
-2. **Configurar secrets adequadamente** 
+2. **Configurar secrets adequadamente**
 3. **Usar proxy reverso (nginx)**
 4. **Configurar backups automáticos**
 5. **Monitoring e alertas**
 6. **SSL/TLS**
 
 Exemplo de override para produção:
+
 ```yaml
 # docker-compose.prod.yml
 version: '3.8'
@@ -314,6 +345,7 @@ services:
 ```
 
 Execute com:
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```

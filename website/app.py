@@ -29,10 +29,11 @@ from lib.models import (
     TentativaAcesso,
     UnidadeMedida,
     Usuario,
+    StatusDispositivo,
+    ComandoDispositivo,
+    StatusMQTT,
     db,
 )
-
-# from lib.mqtt import MQTTClient  # Comentado temporariamente para teste mobile
 
 ph = PasswordHasher()
 
@@ -46,6 +47,15 @@ initialize_firebase()
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///siia.db")
 db.init_app(app)
+
+# Inicializar MQTT Client
+try:
+    from lib.mqtt_new import mqtt_client
+    mqtt_client.init_app(app)
+    print("MQTT Client inicializado com sucesso!")
+except Exception as e:
+    print(f"Erro ao inicializar MQTT Client: {e}")
+    mqtt_client = None
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -1175,6 +1185,188 @@ def admin_logs_list():
     logs = Log.query.order_by(Log.data_hora.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template("admin/logs/list.html", logs=logs)
+
+
+# ===== ROTAS MQTT E IOT =====
+
+
+@app.route("/admin/mqtt")
+@admin_required(3)
+def admin_mqtt_dashboard():
+    """Dashboard MQTT - Nível 3+"""
+    mqtt_status = {}
+    device_status = []
+    recent_data = []
+    
+    if mqtt_client:
+        mqtt_status = mqtt_client.status()
+        device_status = mqtt_client.get_device_status()
+        recent_data = mqtt_client.get_recent_sensors_data(20)
+    
+    return render_template("admin/mqtt/dashboard.html", 
+                         mqtt_status=mqtt_status,
+                         device_status=device_status,
+                         recent_data=recent_data)
+
+
+@app.route("/admin/mqtt/status")
+@admin_required(3)
+def admin_mqtt_status():
+    """Status detalhado MQTT - JSON"""
+    if mqtt_client:
+        status = mqtt_client.status()
+        from lib.models import StatusMQTT, StatusDispositivo
+        
+        # Status dos tópicos
+        topics_status = StatusMQTT.query.all()
+        
+        # Status dos dispositivos
+        devices_status = StatusDispositivo.query.order_by(
+            StatusDispositivo.data_hora.desc()
+        ).limit(10).all()
+        
+        return jsonify({
+            "success": True,
+            "mqtt_status": status,
+            "topics": [{
+                "topico": t.topico,
+                "ultima_mensagem": t.ultima_mensagem.isoformat() if t.ultima_mensagem else None,
+                "status_conexao": t.status_conexao,
+                "erro_ultimo": t.erro_ultimo
+            } for t in topics_status],
+            "devices": [{
+                "tipo": d.tipo_dispositivo,
+                "status": d.status,
+                "data_hora": d.data_hora.isoformat(),
+                "sessao_id": d.sessao_id
+            } for d in devices_status]
+        })
+    else:
+        return jsonify({"success": False, "message": "MQTT Client não inicializado"}), 500
+
+
+@app.route("/admin/mqtt/command", methods=["POST"])
+@admin_required(4)
+def admin_mqtt_command():
+    """Enviar comando manual para dispositivos - Nível 4+"""
+    try:
+        if not mqtt_client:
+            return jsonify({"success": False, "message": "MQTT Client não disponível"}), 500
+            
+        data = request.get_json()
+        device_type = data.get("device_type")
+        command = data.get("command")
+        sessao_id = data.get("sessao_id")
+        
+        success = False
+        
+        if device_type == "irrigacao":
+            if not sessao_id:
+                return jsonify({"success": False, "message": "sessao_id obrigatório para irrigação"}), 400
+            success = mqtt_client.enviar_comando_irrigacao(sessao_id, command)
+            
+        elif device_type == "ventilacao":
+            success = mqtt_client.enviar_comando_ventilacao(command)
+            
+        elif device_type == "iluminacao":
+            success = mqtt_client.enviar_comando_iluminacao(command)
+            
+        else:
+            return jsonify({"success": False, "message": "Tipo de dispositivo inválido"}), 400
+        
+        if success:
+            # Registrar comando no banco
+            from lib.models import ComandoDispositivo
+            comando = ComandoDispositivo(
+                tipo_dispositivo=device_type,
+                comando=command,
+                sessao_id=sessao_id,
+                usuario_id=current_user.id,
+                executado=True
+            )
+            db.session.add(comando)
+            db.session.commit()
+            
+            log_admin_action("Comando MQTT enviado", f"Dispositivo: {device_type}, Comando: {command}")
+            
+            return jsonify({
+                "success": True, 
+                "message": f"Comando {command} enviado para {device_type}"
+            })
+        else:
+            return jsonify({"success": False, "message": "Falha ao enviar comando"}), 500
+            
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/admin/mqtt/sensors")
+@admin_required(2)
+def admin_mqtt_sensors():
+    """Dados dos sensores em tempo real - Nível 2+"""
+    try:
+        from lib.models import DadoPeriodico, Sessao, Cultura
+        
+        # Dados mais recentes por sessão
+        dados_recentes = db.session.query(DadoPeriodico, Sessao, Cultura).join(
+            Sessao, DadoPeriodico.sessao_id == Sessao.id
+        ).join(
+            Cultura, Sessao.cultura_id == Cultura.id
+        ).order_by(DadoPeriodico.data_hora.desc()).limit(20).all()
+        
+        return jsonify({
+            "success": True,
+            "data": [{
+                "id": dado.id,
+                "data_hora": dado.data_hora.isoformat(),
+                "temperatura": dado.temperatura,
+                "umidade_ar": dado.umidade_ar,
+                "umidade_solo": dado.umidade_solo,
+                "exaustor_ligado": dado.exaustor_ligado,
+                "sessao": {
+                    "id": sessao.id,
+                    "nome": sessao.nome,
+                    "cultura": cultura.nome
+                },
+                "imagem_disponivel": dado.imagem is not None
+            } for dado, sessao, cultura in dados_recentes]
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/admin/mqtt/devices")
+@admin_required(3)
+def admin_mqtt_devices():
+    """Página de controle de dispositivos - Nível 3+"""
+    from lib.models import StatusDispositivo, Sessao, ComandoDispositivo
+    
+    # Status atual dos dispositivos
+    devices_status = {}
+    for device_type in ["irrigacao", "ventilacao", "iluminacao"]:
+        latest = StatusDispositivo.query.filter_by(
+            tipo_dispositivo=device_type
+        ).order_by(StatusDispositivo.data_hora.desc()).first()
+        
+        devices_status[device_type] = {
+            "status": latest.status if latest else "DESCONHECIDO",
+            "data_hora": latest.data_hora.isoformat() if latest else None,
+            "sessao_id": latest.sessao_id if latest else None
+        }
+    
+    # Sessões disponíveis para irrigação
+    sessoes = Sessao.query.all()
+    
+    # Comandos recentes
+    comandos_recentes = ComandoDispositivo.query.order_by(
+        ComandoDispositivo.data_hora.desc()
+    ).limit(10).all()
+    
+    return render_template("admin/mqtt/devices.html",
+                         devices_status=devices_status,
+                         sessoes=sessoes,
+                         comandos_recentes=comandos_recentes)
 
 
 # ===== API ENDPOINTS MÓVEIS =====

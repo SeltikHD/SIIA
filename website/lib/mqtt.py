@@ -1,17 +1,20 @@
 import json
 import logging
 import uuid
+import threading
+import ssl
 from os import getenv
+from base64 import b64decode
 
 import paho.mqtt.client as mqtt
 from flask import current_app as app
 
-from app import db
-from lib.models import DadoPeriodico, Notificacao, Sessao
-
 # Configurações do Broker MQTT
 MQTT_BROKER = getenv("MQTT_URL")
-MQTT_PORT = getenv("MQTT_PORT")
+MQTT_PORT = int(getenv("MQTT_PORT", 8883))
+MQTT_USERNAME = getenv("MQTT_USERNAME")
+MQTT_PASSWORD = getenv("MQTT_PASSWORD")
+
 MQTT_TOPICS = {
     "temperatura": "estufa/temperatura",
     "umidade_ar": "estufa/umidade/ar",
@@ -19,31 +22,50 @@ MQTT_TOPICS = {
     "camera": "estufa/camera/imagem",
     "irrigacao_status": "estufa/irrigacao/status",
     "ventilacao_status": "estufa/ventilacao/status",
+    "iluminacao_status": "estufa/iluminacao/status",
     "alerta": "estufa/alerta",
+    "irrigacao_manual": "estufa/irrigacao/manual",
+    "ventilacao_manual": "estufa/ventilacao/manual",
+    "iluminacao_manual": "estufa/iluminacao/manual",
 }
 
 
 class MQTTClient:
     def __init__(self):
-        self.mqtt_client = mqtt.Client(protocol=mqtt.MQTTv5, client_id=f"FlaskClient-{uuid.uuid4()}", userdata=None)
+        self.mqtt_client = mqtt.Client(protocol=mqtt.MQTTv311, client_id=f"FlaskClient-{uuid.uuid4()}")
         self.mqtt_client.on_connect = self.on_connect
-        self.mqtt_client.tls_set(tls_version=mqtt.ssl.PROTOCOL_TLS)
-        self.mqtt_client.username_pw_set(getenv("MQTT_USERNAME"), getenv("MQTT_PASSWORD"))
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.on_disconnect = self.on_disconnect
+        self.connected = False
+        
+        # Configurar TLS para HiveMQ Cloud
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        self.mqtt_client.tls_set_context(context)
+        
+        # Configurar credenciais
+        if MQTT_USERNAME and MQTT_PASSWORD:
+            self.mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
         # Iniciar conexão com o broker
+        self.connect_broker()
+
+    def connect_broker(self):
         try:
-            self.mqtt_client.connect(MQTT_BROKER, int(MQTT_PORT))
-
-            # Iniciar o loop MQTT em segundo plano
-            import threading
-
-            self.mqtt_thread = threading.Thread(target=self.mqtt_client.loop_forever)
-            self.mqtt_thread.daemon = True
-            self.mqtt_thread.start()
+            if MQTT_BROKER and MQTT_PORT:
+                logging.info(f"Tentando conectar ao broker MQTT: {MQTT_BROKER}:{MQTT_PORT}")
+                self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+                
+                # Iniciar o loop MQTT em segundo plano
+                self.mqtt_thread = threading.Thread(target=self.mqtt_client.loop_forever)
+                self.mqtt_thread.daemon = True
+                self.mqtt_thread.start()
+            else:
+                logging.warning("Configurações MQTT não encontradas no .env")
         except Exception as e:
             logging.error(f"Erro ao conectar ao broker MQTT: {e}")
+            self.connected = False
 
     # Verificar status da conexão
     def status(self):

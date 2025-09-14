@@ -1,0 +1,298 @@
+{% extends "components/base.html" %} 
+{% block title %}Dashboard MQTT - IoT{% endblock %} 
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Dashboard MQTT & IoT</h1>
+        <div class="flex items-center space-x-4">
+            {% if mqtt_status.connected %}
+                <div class="badge badge-success">Conectado</div>
+            {% else %}
+                <div class="badge badge-error">Desconectado</div>
+            {% endif %}
+            <button id="refresh-data" class="btn btn-primary btn-sm">
+                🔄 Atualizar
+            </button>
+        </div>
+    </div>
+
+    <!-- Status da Conexão MQTT -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <h3 class="card-title">Status MQTT</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Broker:</span>
+                        <span class="font-mono text-sm">{{ mqtt_status.broker or 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Porta:</span>
+                        <span>{{ mqtt_status.port or 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Status:</span>
+                        {% if mqtt_status.connected %}
+                            <span class="text-success font-semibold">🟢 Online</span>
+                        {% else %}
+                            <span class="text-error font-semibold">🔴 Offline</span>
+                        {% endif %}
+                    </div>
+                    {% if mqtt_status.last_error %}
+                    <div class="alert alert-error mt-2">
+                        <span class="text-xs">{{ mqtt_status.last_error }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Status dos Dispositivos -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <h3 class="card-title">Dispositivos IoT</h3>
+                <div class="space-y-2">
+                    {% set device_types = {'irrigacao': '💧 Irrigação', 'ventilacao': '🌀 Ventilação', 'iluminacao': '💡 Iluminação'} %}
+                    {% for device in device_status[:3] %}
+                    <div class="flex justify-between items-center">
+                        <span>{{ device_types.get(device.tipo_dispositivo, device.tipo_dispositivo) }}</span>
+                        {% if device.status in ['LIGADO', 'ABERTO'] %}
+                            <span class="badge badge-success">{{ device.status }}</span>
+                        {% else %}
+                            <span class="badge badge-ghost">{{ device.status }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-actions mt-4">
+                    <a href="{{ url_for('admin_mqtt_devices') }}" class="btn btn-primary btn-sm w-full">
+                        Controlar Dispositivos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensores Recentes -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <h3 class="card-title">Última Leitura</h3>
+                {% if recent_data %}
+                    {% set last_reading = recent_data[0] %}
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>🌡️ Temperatura:</span>
+                            <span class="font-semibold">{{ "%.1f"|format(last_reading.temperatura) }}°C</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>💨 Umidade Ar:</span>
+                            <span class="font-semibold">{{ "%.1f"|format(last_reading.umidade_ar) }}%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>🌱 Umidade Solo:</span>
+                            <span class="font-semibold">{{ "%.1f"|format(last_reading.umidade_solo) }}%</span>
+                        </div>
+                        <div class="text-xs text-base-content/70 mt-2">
+                            {{ last_reading.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center text-base-content/70">
+                        Nenhum dado disponível
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Dados dos Sensores -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Dados Recentes -->
+        <div class="card bg-base-100">
+            <div class="card-body">
+                <h3 class="card-title">Dados dos Sensores</h3>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="table table-zebra table-xs">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Temp. (°C)</th>
+                                <th>Umid. Ar (%)</th>
+                                <th>Umid. Solo (%)</th>
+                                <th>Sessão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in recent_data[:10] %}
+                            <tr>
+                                <td class="text-xs">{{ data.data_hora.strftime('%H:%M:%S') }}</td>
+                                <td>{{ "%.1f"|format(data.temperatura) }}</td>
+                                <td>{{ "%.1f"|format(data.umidade_ar) }}</td>
+                                <td>{{ "%.1f"|format(data.umidade_solo) }}</td>
+                                <td>{{ data.sessao_id }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-actions mt-4">
+                    <button id="view-sensors" class="btn btn-outline btn-sm">
+                        Ver Todos os Sensores
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status dos Dispositivos Detalhado -->
+        <div class="card bg-base-100">
+            <div class="card-body">
+                <h3 class="card-title">Histórico de Dispositivos</h3>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="table table-zebra table-xs">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>Status</th>
+                                <th>Data/Hora</th>
+                                <th>Sessão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in device_status[:10] %}
+                            <tr>
+                                <td>
+                                    {% if device.tipo_dispositivo == 'irrigacao' %}
+                                        💧 Irrigação
+                                    {% elif device.tipo_dispositivo == 'ventilacao' %}
+                                        🌀 Ventilação
+                                    {% elif device.tipo_dispositivo == 'iluminacao' %}
+                                        💡 Iluminação
+                                    {% else %}
+                                        {{ device.tipo_dispositivo }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if device.status in ['LIGADO', 'ABERTO'] %}
+                                        <span class="badge badge-success badge-xs">{{ device.status }}</span>
+                                    {% else %}
+                                        <span class="badge badge-ghost badge-xs">{{ device.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-xs">{{ device.data_hora.strftime('%d/%m %H:%M') }}</td>
+                                <td>{{ device.sessao_id or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="card bg-base-100">
+        <div class="card-body">
+            <h3 class="card-title">Ações Rápidas</h3>
+            <div class="flex flex-wrap gap-4">
+                <button class="btn btn-outline" onclick="sendCommand('ventilacao', 'ON')">
+                    🌀 Ligar Ventilação
+                </button>
+                <button class="btn btn-outline" onclick="sendCommand('ventilacao', 'OFF')">
+                    🌀 Desligar Ventilação
+                </button>
+                <button class="btn btn-outline" onclick="sendCommand('iluminacao', 'ON')">
+                    💡 Ligar Iluminação
+                </button>
+                <button class="btn btn-outline" onclick="sendCommand('iluminacao', 'OFF')">
+                    💡 Desligar Iluminação
+                </button>
+                <a href="{{ url_for('admin_mqtt_devices') }}" class="btn btn-primary">
+                    🎛️ Controle Avançado
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh dos dados
+    function refreshData() {
+        fetch('/admin/mqtt/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar status na página
+                    console.log('Dados MQTT atualizados:', data);
+                }
+            })
+            .catch(error => console.error('Erro ao atualizar dados:', error));
+    }
+
+    // Refresh manual
+    document.getElementById('refresh-data').addEventListener('click', refreshData);
+
+    // Auto-refresh a cada 30 segundos
+    setInterval(refreshData, 30000);
+
+    // Botão ver sensores
+    document.getElementById('view-sensors').addEventListener('click', function() {
+        fetch('/admin/mqtt/sensors')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Dados dos sensores:', data.data);
+                    // Implementar modal ou nova página
+                }
+            });
+    });
+});
+
+// Função para enviar comandos rápidos
+async function sendCommand(deviceType, command) {
+    try {
+        const response = await fetch('/admin/mqtt/command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                device_type: deviceType,
+                command: command
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Mostrar sucesso
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success fixed top-4 right-4 z-50 w-auto';
+            toast.innerHTML = `<span>${result.message}</span>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+            
+            // Refresh dos dados
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        // Mostrar erro
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-error fixed top-4 right-4 z-50 w-auto';
+        toast.innerHTML = `<span>Erro: ${error.message}</span>`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+}
+</script>
+{% endblock %}
